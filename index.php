@@ -30,7 +30,10 @@ if ($user) {
 if ($user) {
   $logoutUrl = $facebook->getLogoutUrl();
 } else {
-  $loginUrl = $facebook->getLoginUrl();
+  $loginUrl = $facebook->getLoginUrl(array(
+    'scope' => 'offline_access permission, user_checkins, user_events, user_likes, user_photos, user_status, user_videos',
+    'redirect_uri' => 'http://stream.benconstable.co.uk'
+  ));
 }
 
 // This call will always work since we are fetching public data.
