@@ -9,5 +9,5 @@ pake_desc("Main deploy task");
 pake_task("deploy", "default_deploy");
 function run_deploy($obj, $args)
 {
-	pake_echo_action("DEPLOYED", "** Application has finished deploying");
+	pake_echo_action("DEPLOYED", "** Application has finished deploying **");
 }
