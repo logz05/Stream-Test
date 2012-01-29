@@ -31,7 +31,7 @@ if ($user) {
   $logoutUrl = $facebook->getLogoutUrl();
 } else {
   $loginUrl = $facebook->getLoginUrl(array(
-    'scope' => 'offline_access permission, user_checkins, user_events, user_likes, user_photos, user_status, user_videos',
+    'scope' => 'offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos',
     'redirect_uri' => 'http://stream.benconstable.co.uk'
   ));
 }
