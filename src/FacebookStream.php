@@ -111,6 +111,10 @@ class FacebookStream extends Stream
 				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
 				
 				$stmt->execute();
+				
+				echo "Status added!<br />";
+				echo "Message: {$status["message"]}<br />";
+				echo "Likes: $likes<br /><br />";
 			}
 		}
 		
