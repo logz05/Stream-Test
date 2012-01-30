@@ -10,7 +10,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/src/database/Database.php';
  */
 abstract class Stream
 {	
-	protected $requiresAuth;
 	protected $db;
 	protected $userId;
 	protected $dateLimit;

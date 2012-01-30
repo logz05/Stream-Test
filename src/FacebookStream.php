@@ -16,7 +16,7 @@ class FacebookStream extends Stream
 	
 	public function __construct($userId, $appId, $appSecret)
 	{
-		parent::__construct($userId, true);
+		parent::__construct($userId);
 				
 		$this->facebook = new Facebook(array(
 			'appId' => $appId,
@@ -53,12 +53,11 @@ class FacebookStream extends Stream
 				
 		foreach ($statuses["data"] as $status) {
 			
-			if ($this->dateLimitReached($status["updated_time"])) {
-				
+			if (!$this->dateLimitReached($status["updated_time"])) {
 				return;
 			}
 			else {
-			
+				
 				$likes = $this->countLikes($status["likes"]);
 			
 				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, message, likes) VALUES (?, ?, ?, ?, ?)");
