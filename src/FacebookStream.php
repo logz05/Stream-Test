@@ -63,10 +63,10 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, message, likes) VALUES (?, ?, ?, ?, ?)");
 			
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(1, $status["id"], PDO::PARAM_INT);
-				$stmt->bindParam(1, $status["updated_time"], PDO::PARAM_STR);
-				$stmt->bindParam(1, $status["mesage"], PDO::PARAM_STR);
-				$stmt->bindParam(1, $likes, PDO::PARAM_INT);
+				$stmt->bindParam(2, $status["id"], PDO::PARAM_INT);
+				$stmt->bindParam(3, $status["updated_time"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $status["mesage"], PDO::PARAM_STR);
+				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
 				
 				$stmt->execute();
 				
