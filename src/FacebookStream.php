@@ -65,7 +65,7 @@ class FacebookStream extends Stream
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 				$stmt->bindParam(2, $status["id"], PDO::PARAM_INT);
 				$stmt->bindParam(3, $status["updated_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $status["mesage"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $status["message"], PDO::PARAM_STR);
 				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
 				
 				$stmt->execute();
