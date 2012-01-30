@@ -1,5 +1,5 @@
 <?php
-
+/*
 require_once("lib/facebook-php-sdk/src/facebook.php");
 
 $facebook = new Facebook(array(
@@ -7,14 +7,8 @@ $facebook = new Facebook(array(
     'secret' => 'd8d83bd59512000bc26dfc888e6e006b'
 ));
 
-// Get User ID
 $user = $facebook->getUser();
 
-// We may or may not have this data based on whether the user is logged in.
-//
-// If we have a $user id here, it means we know the user is logged into
-// Facebook, but we don't know if the access token is valid. An access
-// token is invalid if the user logged out of Facebook.
 
 if ($user) {
   try {
@@ -36,10 +30,8 @@ if ($user) {
   ));
 }
 
-// This call will always work since we are fetching public data.
-$naitik = $facebook->api('/naitik');
-
 ?>
+
 <!doctype html>
 <html xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
@@ -82,8 +74,16 @@ Login using OAuth 2.0 handled by the PHP SDK:
 <strong><em>You are not Connected.</em></strong>
 <?php endif ?>
 
-<h3>Public profile of Naitik</h3>
-<img src="https://graph.facebook.com/naitik/picture">
-<?php echo $naitik['name']; ?>
 </body>
 </html>
+
+*/
+
+ini_set("display_errors", 1);
+error_reporting(E_ALL);
+
+require_once 'src/FacebookStream.php';
+
+$fbStream = new FacebookStream("102182536573392", "d8d83bd59512000bc26dfc888e6e006b");
+
+echo "success!";
