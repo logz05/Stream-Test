@@ -1,6 +1,6 @@
 <?php
 
-require_once '../lib/facebook-php-sdk/src/facebook.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/facebook-php-sdk/src/facebook.php';
 
 /**
  * Description of FacebookStream
