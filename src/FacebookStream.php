@@ -51,6 +51,8 @@ class FacebookStream extends Stream
 	{
 		$statuses = $this->apiCall($method);
 		
+		var_dump($statuses);
+		
 		foreach ($statuses->data as $status) {
 			
 			if ($this->dateLimitReached($status->updated_time)) {
