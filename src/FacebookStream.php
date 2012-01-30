@@ -168,7 +168,12 @@ class FacebookStream extends Stream
 		if ($this->authenticated()) {
 			
 			try {
-				return $this->facebook->api($method, "POST", $params);
+				if ($params != null) {
+					return $this->facebook->api($method);
+				}
+				else {
+					return $this->facebook->api($method, "GET", $params);
+				}
 			}
 			catch(FacebookApiException $e) {
 				return null;
