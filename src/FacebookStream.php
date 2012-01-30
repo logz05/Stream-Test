@@ -97,7 +97,7 @@ class FacebookStream extends Stream
 		// Iterate and store
 		foreach ($statuses["data"] as $status) {
 			
-			if (!$this->dateLimitReached(new DateTime($status["updated_time"]))) {
+			if (!$this->dateLimitReached($status["updated_time"])) {
 				return;
 			}
 			else {
