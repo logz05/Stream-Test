@@ -61,12 +61,14 @@ abstract class Stream
 	/**
 	 * Check if the given date is past the date limit.
 	 * 
-	 * @param DateTime $date DateTime object to test
+	 * @param mixed $date DateTime obejct or date string to test
 	 * @return boolean True if date limit is reached, false if not 
 	 */
 	protected function dateLimitReached($date)
 	{
-		$date = new DateTime($date);
+		if (!$date instanceof DateTime) {
+			$date = new DateTime($date);
+		}
 		
 		return ($this->dateLimit->format('U') - $date->format('U')) <= 0;
 	}
