@@ -40,7 +40,30 @@ class FacebookStream extends Stream
 	{
 		
 	}
-
+	
+	private function updateCheckins()
+	{
+	}
+	
+	private function updateStatuses()
+	{	
+	}
+	
+	private function updateEvents()
+	{
+	}
+	
+	private function updateLikes()
+	{	
+	}
+	
+	private function updatePhotos()
+	{
+	}
+	
+	private function updateVideos()
+	{	
+	}
 }
 
 ?>
