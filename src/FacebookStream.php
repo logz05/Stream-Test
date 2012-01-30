@@ -53,31 +53,31 @@ class FacebookStream extends Stream
 		
 		var_dump($statuses);
 		
-		foreach ($statuses->data as $status) {
+		foreach ($statuses["data"] as $status) {
 			
-			if ($this->dateLimitReached($status->updated_time)) {
+			if ($this->dateLimitReached($status["updated_time"])) {
 				
 				return;
 			}
 			else {
 			
-				$likes = $this->countLikes($status->likes);
+				$likes = $this->countLikes($status["likes"]);
 			
 				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, message, likes) VALUES (?, ?, ?, ?, ?)");
 			
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(1, $status->id, PDO::PARAM_INT);
-				$stmt->bindParam(1, $status->updated_time, PDO::PARAM_STR);
-				$stmt->bindParam(1, $status->mesage, PDO::PARAM_STR);
+				$stmt->bindParam(1, $status["id"], PDO::PARAM_INT);
+				$stmt->bindParam(1, $status["updated_time"], PDO::PARAM_STR);
+				$stmt->bindParam(1, $status["mesage"], PDO::PARAM_STR);
 				$stmt->bindParam(1, $likes, PDO::PARAM_INT);
 				
-				echo "Message: {$status->message}<br />";
+				echo "Message: {$status["message"]}<br />";
 				echo "Likes: $likes<br /><br />";
 			}
 		}
 		
-		if ($statuses->paging->next) {
-			$this->updateStatuses($statuses->paging->next);
+		if ($statuses["paging"]["next"]) {
+			$this->updateStatuses($statuses["paging"]["next"]);
 		}
 	}
 	
@@ -99,10 +99,10 @@ class FacebookStream extends Stream
 	
 	private function countLikes($likes)
 	{
-		$count = count($likes->data);
+		$count = count($likes["data"]);
 		
-		if ($likes->paging->next) {
-			$count += $this->countLikes($this->apiCall($likes->paging->next));
+		if ($likes["paging"]["next"]) {
+			$count += $this->countLikes($this->apiCall($likes["paging"]["next"]));
 		}
 		
 		return $count;
