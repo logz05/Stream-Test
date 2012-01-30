@@ -70,10 +70,12 @@ class FacebookStream extends Stream
 		if (!$this->user) {
 			
 			// Render Login link
-			echo "<a href=\"{$this->facebook->getLoginUrl(array(
+			echo "<a href=\"";
+			echo $this->facebook->getLoginUrl(array(
 				"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
 				"display" => "popup"
-			))}\">login</a><br />";
+			));
+			echo "\">login</a><br />";
 			
 			return false;
 		}
