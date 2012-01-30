@@ -33,7 +33,7 @@ abstract class Stream
 	{
 		$date = new DateTime($date);
 		
-		return ($dateLimit->format('U') - $date->format('U')) <= 0;
+		return ($this->dateLimit->format('U') - $date->format('U')) <= 0;
 	}
 }
 
