@@ -50,9 +50,7 @@ class FacebookStream extends Stream
 	private function updateStatuses($method = "/me/statuses")
 	{
 		$statuses = $this->apiCall($method);
-		
-		var_dump($statuses);
-		
+				
 		foreach ($statuses["data"] as $status) {
 			
 			if ($this->dateLimitReached($status["updated_time"])) {
@@ -99,13 +97,18 @@ class FacebookStream extends Stream
 	
 	private function countLikes($likes)
 	{
-		$count = count($likes["data"]);
-		
-		if ($likes["paging"]["next"]) {
-			$count += $this->countLikes($this->apiCall($likes["paging"]["next"]));
+		if ($likes) {
+			$count = count($likes["data"]);
+			
+			if ($likes["paging"]["next"]) {
+				$count += $this->countLikes($this->apiCall($likes["paging"]["next"]));
+			}
+			
+			return $count;
 		}
-		
-		return $count;
+		else {
+			return 0;
+		}
 	}
 	
 	private function apiCall($method)
