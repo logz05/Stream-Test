@@ -28,7 +28,7 @@ class FacebookStream extends Stream
 	
 	public function update()
 	{
-		
+		$this->updateStatuses();
 	}
 	
 	public function get()
@@ -46,7 +46,8 @@ class FacebookStream extends Stream
 	}
 	
 	private function updateStatuses()
-	{	
+	{
+		var_dump($this->facebook->api("/me/feed"));
 	}
 	
 	private function updateEvents()

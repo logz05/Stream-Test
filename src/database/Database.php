@@ -17,7 +17,6 @@ class Database
 			return new PDO("mysql:dbname=" . self::$dbName . ";host=localhost", self::$user, self::$password);
 		}
 		catch(Exception $e) {
-			echo "failed to connect to database";
 			return null;
 		}
 	}
