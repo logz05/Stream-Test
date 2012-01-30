@@ -48,7 +48,7 @@ class FacebookStream extends Stream
 	private function updateStatuses()
 	{
 		echo "<a href=\"{$this->facebook->getLoginUrl()}\">login</a><br />";
-		var_dump($this->user);
+		var_dump($this->facebook->api('/me/feed'));
 	}
 	
 	private function updateEvents()
