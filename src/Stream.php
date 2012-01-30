@@ -1,6 +1,6 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . 'database/Database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/database/Database.php';
 
 /**
  * Description of Stream
