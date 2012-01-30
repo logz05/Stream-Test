@@ -84,5 +84,5 @@ error_reporting(E_ALL);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/src/FacebookStream.php';
 
-$fbStream = new FacebookStream("102182536573392", "d8d83bd59512000bc26dfc888e6e006b");
+$fbStream = new FacebookStream(1, "102182536573392", "d8d83bd59512000bc26dfc888e6e006b");
 $fbStream->update();

@@ -12,18 +12,29 @@ abstract class Stream
 {	
 	protected $requiresAuth;
 	protected $db;
+	protected $userId;
+	protected $dateLimit;
 	
-	public function __construct($requiresAuth = false)
+	public function __construct($userId, $requiresAuth = false)
 	{
 		$this->requiresAuth = $requiresAuth;
 		$this->db = Database::connect();
+		$this->userId = $userId;
+		$this->dateLimit = new DateTime("2012-01-01T00:00:00");
 	}
 	
 	public abstract function update();
 	
 	public abstract function get();
 	
-	protected function authenticate() {}
+	protected function authenticated() {}
+	
+	protected function dateLimitReached($date)
+	{
+		$date = new DateTime($date);
+		
+		return ($dateLimit->format('U') - $date->format('U')) <= 0;
+	}
 }
 
 ?>
