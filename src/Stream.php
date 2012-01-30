@@ -19,7 +19,7 @@ abstract class Stream
 		$this->requiresAuth = $requiresAuth;
 		$this->db = Database::connect();
 		$this->userId = $userId;
-		$this->dateLimit = new DateTime("2012-01-01T00:00:00");
+		$this->dateLimit = new DateTime("2011-06-01T00:00:00");
 	}
 	
 	public abstract function update();
