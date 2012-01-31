@@ -47,7 +47,7 @@ class FacebookStream extends Stream
 	 */
 	public function update()
 	{
-		$this->updateStatuses();
+		// $this->updateStatuses();
 		$this->updateCheckins();
 		$this->updateEvents();
 		$this->updateLikes();
@@ -132,6 +132,7 @@ class FacebookStream extends Stream
 		
 		foreach ($checkins["data"] as $checkin) {
 			
+			var_dump($checkin);
 			if (!$this->dateLimitReached($checkin["created_time"])) {
 				return;
 			}
