@@ -218,6 +218,7 @@ class FacebookStream extends Stream
 		
 		foreach ($photos["data"] as $photo) {
 			
+			var_dump($photo);
 			if (!$this->dateLimitReached($photo["created_time"])) {
 				return;
 			}
