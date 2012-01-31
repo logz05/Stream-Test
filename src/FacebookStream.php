@@ -113,10 +113,6 @@ class FacebookStream extends Stream
 				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
 				
 				$stmt->execute();
-				
-				echo "Status added!<br />";
-				echo "Message: {$status["message"]}<br />";
-				echo "Likes: $likes<br /><br />";
 			}
 		}
 		
@@ -188,7 +184,34 @@ class FacebookStream extends Stream
 		}
 	}
 	
-	private function updateLikes() {}
+	private function updateLikes($method = "/me/likes")
+	{
+		$likes = $this->apiCall($method);
+		
+		foreach ($likes["data"] as $like) {
+			
+			if (!$this->dateLimitReached($like["created_time"])) {
+				return;
+			}
+			else {
+				
+				$stmt = $this->db->prepare("INSERT INTO facebook_like (user_id, object_id, object_date, name, category) VALUES (?, ?, ?, ?, ?)");
+				
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $like["id"], PDO::PARAM_INT);
+				$stmt->bindParam(3, $like["created_time"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $like["name"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $like["category"], PDO::PARAM_STR);
+				
+				$stmt->execute();
+			}
+		}
+		
+		if ($likes["paging"]["next"]) {
+			$this->updateLikes($likes["paging"]["next"]);
+		}
+	}
+	
 	private function updatePhotos() {}
 	private function updateVideos() {}
 	
