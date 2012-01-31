@@ -107,7 +107,7 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, message, likes) VALUES (?, ?, ?, ?, ?)");
 			
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $status["id"], PDO::PARAM_INT);
+				$stmt->bindParam(2, $status["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $status["updated_time"], PDO::PARAM_STR);
 				$stmt->bindParam(4, $status["message"], PDO::PARAM_STR);
 				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
@@ -137,7 +137,7 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare("INSERT INTO facebook_checkin (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $checkin["id"], PDO::PARAM_INT);
+				$stmt->bindParam(2, $checkin["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $checkin["created_time"], PDO::PARAM_STR);
 				$stmt->bindParam(4, $checkin["place"]["name"], PDO::PARAM_STR);
 				$stmt->bindParam(5, $checkin["place"]["location"]["city"], PDO::PARAM_STR);
@@ -169,7 +169,7 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare("INSERT INTO facebook_event (user_id, object_id, object_date, name, venue, description) VALUES (?, ?, ?, ?, ?, ?)");
 				
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $event["id"], PDO::PARAM_INT);
+				$stmt->bindParam(2, $event["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $event["start_time"], PDO::PARAM_STR);
 				$stmt->bindParam(4, $event["name"], PDO::PARAM_STR);
 				$stmt->bindParam(5, $event["venue"], PDO::PARAM_STR);
@@ -198,7 +198,7 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare("INSERT INTO facebook_like (user_id, object_id, object_date, name, category) VALUES (?, ?, ?, ?, ?)");
 				
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $like["id"], PDO::PARAM_INT);
+				$stmt->bindParam(2, $like["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $like["created_time"], PDO::PARAM_STR);
 				$stmt->bindParam(4, $like["name"], PDO::PARAM_STR);
 				$stmt->bindParam(5, $like["category"], PDO::PARAM_STR);
@@ -212,7 +212,38 @@ class FacebookStream extends Stream
 		}
 	}
 	
-	private function updatePhotos() {}
+	private function updatePhotos($method = "/me/photos")
+	{
+		$photos = $this->apiCall($method);
+		
+		foreach ($photos["data"] as $photo) {
+			
+			if (!$this->dateLimitReached($photo["created_time"])) {
+				return;
+			}
+			else {
+				
+				$likes = $this->countLikes($photo["likes"]);
+				
+				$stmt = $this->db->prepare("INSERT INTO facebook_photo (user_id, object_id, object_date, from, source, link, likes) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $photo["id"], PDO::PARAM_STR);
+				$stmt->bindParam(3, $photo["created_time"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $photo["from"]["name"], PDO::PARAM_STR);
+				$stmt->bindParam(5, $photo["source"], PDO::PARAM_STR);
+				$stmt->bindParam(6, $photo["link"], PDO::PARAM_STR);
+				$stmt->bindParam(7, $likes, PDO::PARAM_INT);
+				
+				$stmt->execute();
+			}
+		}
+		
+		if ($photos["paging"]["next"]) {
+			$this->updatePhotos($photos["paging"]["next"]);
+		}
+	}
+	
 	private function updateVideos() {}
 	
 	/**
