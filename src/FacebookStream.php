@@ -218,7 +218,6 @@ class FacebookStream extends Stream
 		
 		foreach ($photos["data"] as $photo) {
 			
-			var_dump($photo);
 			if (!$this->dateLimitReached($photo["created_time"])) {
 				return;
 			}
@@ -236,7 +235,12 @@ class FacebookStream extends Stream
 				$stmt->bindParam(6, $photo["link"], PDO::PARAM_STR);
 				$stmt->bindParam(7, $likes, PDO::PARAM_INT);
 				
-				var_dump($this->db->errorInfo());
+				echo "ID: ".$photo["id"]."<br />";
+				echo "Time: ".$photo["created_time"]."<br />";
+				echo "From: ".$photo["from"]["name"]."<br />";
+				echo "Source: ".$photo["source"]."<br />";
+				echo "Link: ".$photo["link"]."<br />";
+				echo "Likes: ".$likes."<br /><br />";
 				
 				$stmt->execute();
 			}
