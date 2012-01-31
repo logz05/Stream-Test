@@ -201,7 +201,7 @@ class FacebookStream extends Stream
 				$stmt->bindParam(2, $like["id"], PDO::PARAM_INT);
 				$stmt->bindParam(3, $like["created_time"], PDO::PARAM_STR);
 				$stmt->bindParam(4, $like["name"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $like["category"], PDO::PARAM_STR);
+				$stmt->bindParam(5, $like["category"], PDO::PARAM_STR);
 				
 				$stmt->execute();
 			}
