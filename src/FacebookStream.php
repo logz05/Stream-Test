@@ -47,7 +47,7 @@ class FacebookStream extends Stream
 	 */
 	public function update()
 	{
-		// $this->updateStatuses();
+		$this->updateStatuses();
 		$this->updateCheckins();
 		$this->updateEvents();
 		$this->updateLikes();
@@ -120,7 +120,6 @@ class FacebookStream extends Stream
 			}
 		}
 		
-		// If there are more statuses on the next page, recurse
 		if ($statuses["paging"]["next"]) {
 			$this->updateStatuses($statuses["paging"]["next"]);
 		}
@@ -137,7 +136,6 @@ class FacebookStream extends Stream
 			}
 			else {
 				
-				var_dump($checkin["likes"]);
 				$likes = $this->countLikes($checkin["likes"]);
 				
 				$stmt = $this->db->prepare("INSERT INTO facebook_checkin (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -156,15 +154,38 @@ class FacebookStream extends Stream
 			}
 		}
 		
-		// If there are more checkins on the next page, recurse
 		if ($checkins["paging"]["next"]) {
 			$this->updateCheckins($checkins["paging"]["next"]);
-		}
+		}		
 	}
 	
 	private function updateEvents()
 	{
+		$events = $this->apiCall($method);
 		
+		foreach ($events["data"] as $event) {
+			
+			if (!$this->dateLimitReached($event["start_time"])) {
+				return;
+			}
+			else {
+								
+				$stmt = $this->db->prepare("INSERT INTO facebook_event (user_id, object_id, object_date, name, venue, description) VALUES (?, ?, ?, ?, ?, ?)");
+				
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $event["id"], PDO::PARAM_INT);
+				$stmt->bindParam(3, $event["start_time"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $event["name"], PDO::PARAM_STR);
+				$stmt->bindParam(5, $event["venue"], PDO::PARAM_STR);
+				$stmt->bindParam(6, $event["description"], PDO::PARAM_STR);
+				
+				$stmt->execute();
+			}
+		}
+		
+		if ($events["paging"]["next"]) {
+			$this->updateEvents($events["paging"]["next"]);
+		}
 	}
 	
 	private function updateLikes() {}
