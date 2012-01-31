@@ -47,10 +47,10 @@ class FacebookStream extends Stream
 	 */
 	public function update()
 	{
-		$this->updateStatuses();
-		$this->updateCheckins();
-		$this->updateEvents();
-		$this->updateLikes();
+		// $this->updateStatuses();
+		// $this->updateCheckins();
+		// $this->updateEvents();
+		// $this->updateLikes();
 		$this->updatePhotos();
 		$this->updateVideos();
 	}
