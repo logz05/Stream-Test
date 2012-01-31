@@ -23,7 +23,7 @@ abstract class Stream
 	/**
 	 * @var DateTime $dateLimit Date at which to stop looking for objects to store 
 	 */
-	protected $dateLimit;
+	public static $dateLimit;
 	
 	/**
 	 * Constructor.
@@ -34,7 +34,7 @@ abstract class Stream
 	{
 		$this->db = Database::connect();
 		$this->userId = $userId;
-		$this->dateLimit = new DateTime("2011-06-01T00:00:00");
+		$this->dateLimit = new DateTime(self::$datelimit);
 	}
 	
 	/**

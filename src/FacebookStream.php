@@ -126,8 +126,46 @@ class FacebookStream extends Stream
 		}
 	}
 	
-	private function updateCheckins() {}
-	private function updateEvents() {}
+	private function updateCheckins($method = "/me/checkins")
+	{
+		$checkins = $this->apiCall($method);
+		
+		foreach ($checkins["data"] as $checkin) {
+			
+			if (!$this->dateLimitReached($checkin["created_time"])) {
+				return;
+			}
+			else {
+				
+				$likes = $this->countLikes($checkin["likes"]);
+				
+				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $checkin["id"], PDO::PARAM_INT);
+				$stmt->bindParam(3, $checkin["created_time"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $checkin["place"]["name"], PDO::PARAM_STR);
+				$stmt->bindParam(5, $checkin["place"]["location"]["city"], PDO::PARAM_STR);
+				$stmt->bindParam(6, $checkin["place"]["location"]["country"], PDO::PARAM_STR);
+				$stmt->bindParam(7, $checkin["place"]["location"]["longitude"], PDO::PARAM_STR);
+				$stmt->bindParam(8, $checkin["place"]["location"]["latitude"], PDO::PARAM_STR);
+				$stmt->bindParam(9, $likes, PDO::PARAM_INT);
+				
+				$stmt->execute();
+			}
+		}
+		
+		// If there are more checkins on the next page, recurse
+		if ($checkins["paging"]["next"]) {
+			$this->updateStatuses($checkins["paging"]["next"]);
+		}
+	}
+	
+	private function updateEvents()
+	{
+		
+	}
+	
 	private function updateLikes() {}
 	private function updatePhotos() {}
 	private function updateVideos() {}
