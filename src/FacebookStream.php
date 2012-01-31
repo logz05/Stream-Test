@@ -132,12 +132,12 @@ class FacebookStream extends Stream
 		
 		foreach ($checkins["data"] as $checkin) {
 			
-			var_dump($checkin);
 			if (!$this->dateLimitReached($checkin["created_time"])) {
 				return;
 			}
 			else {
 				
+				var_dump($checkin["likes"]);
 				$likes = $this->countLikes($checkin["likes"]);
 				
 				$stmt = $this->db->prepare("INSERT INTO facebook_checkin (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
