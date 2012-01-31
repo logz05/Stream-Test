@@ -235,7 +235,6 @@ class FacebookStream extends Stream
 				$stmt->bindParam(6, $photo["link"], PDO::PARAM_STR);
 				$stmt->bindParam(7, $likes, PDO::PARAM_INT);
 				
-				var_dump($stmt->errorInfo());
 				echo "ID: ".$photo["id"]."<br />";
 				echo "Time: ".$photo["created_time"]."<br />";
 				echo "From: ".$photo["from"]["name"]."<br />";
@@ -244,6 +243,8 @@ class FacebookStream extends Stream
 				echo "Likes: ".$likes."<br /><br />";
 				
 				$stmt->execute();
+				
+				var_dump($this->db->errorInfo());
 			}
 		}
 		
