@@ -159,7 +159,7 @@ class FacebookStream extends Stream
 		}		
 	}
 	
-	private function updateEvents()
+	private function updateEvents($method = "/me/events")
 	{
 		$events = $this->apiCall($method);
 		
