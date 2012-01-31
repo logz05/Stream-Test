@@ -34,7 +34,7 @@ abstract class Stream
 	{
 		$this->db = Database::connect();
 		$this->userId = $userId;
-		$this->dateLimit = new DateTime(self::$datelimit);
+		$this->dateLimit = new DateTime(self::$dateLimit);
 	}
 	
 	/**
