@@ -139,7 +139,7 @@ class FacebookStream extends Stream
 				
 				$likes = $this->countLikes($checkin["likes"]);
 				
-				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				$stmt = $this->db->prepare("INSERT INTO facebook_checkin (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 				$stmt->bindParam(2, $checkin["id"], PDO::PARAM_INT);
@@ -157,7 +157,7 @@ class FacebookStream extends Stream
 		
 		// If there are more checkins on the next page, recurse
 		if ($checkins["paging"]["next"]) {
-			$this->updateStatuses($checkins["paging"]["next"]);
+			$this->updateCheckins($checkins["paging"]["next"]);
 		}
 	}
 	
