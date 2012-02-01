@@ -48,23 +48,31 @@ class FacebookStream extends Stream
 	public function get() {}
 	
 	/**
+	 * Updates all Facebook objects for the authenticated user.
+	 * 
 	 * @see Stream::update()
 	 */
 	public function update()
 	{
-		//$this->updateStatuses();
-		//$this->updateCheckins();
-		//$this->updateEvents();
-		//$this->updateLikes();
-		//$this->updatePhotos();
+		echo "<h2>Update Facebook Stream...</h2>";
+		
+		$this->updateStatuses();
+		$this->updateCheckins();
+		$this->updateEvents();
+		$this->updateLikes();
+		$this->updatePhotos();
 		$this->updateVideos();
+		
+		echo "<h2>Facebook Stream updated</h2>";
 	}
 	
 	/**
 	 * Get Facebook statuses for the current user and store them in the database.
 	 */
 	public function updateStatuses()
-	{		
+	{
+		echo "<p>Updating status updates...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_status",
@@ -76,13 +84,18 @@ class FacebookStream extends Stream
 			),
 			"/me/statuses"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook checkins for the current user and store them in the database.
 	 */
 	public function updateCheckins()
-	{		
+	{
+		echo "<p>Updating checkins...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_checkin",
@@ -98,13 +111,18 @@ class FacebookStream extends Stream
 			),
 			"/me/checkins"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook events for the current user and store them in the database.
 	 */
-	public function updateEvents($method = "/me/events")
-	{		
+	public function updateEvents()
+	{
+		echo "<p>Updating events...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_event",
@@ -118,13 +136,18 @@ class FacebookStream extends Stream
 			),
 			"/me/events"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook likes for the current user and store them in the database.
 	 */
 	public function updateLikes()
-	{		
+	{
+		echo "<p>Updating likes...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_like",
@@ -137,13 +160,18 @@ class FacebookStream extends Stream
 			),
 			"/me/likes"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook photos for the current user and store them in the database.
 	 */
 	public function updatePhotos()
-	{		
+	{
+		echo "<p>Updating photos...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_photo",
@@ -157,6 +185,9 @@ class FacebookStream extends Stream
 			),
 			"/me/photos"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
@@ -164,6 +195,8 @@ class FacebookStream extends Stream
 	 */
 	public function updateVideos()
 	{
+		echo "<p>Updating videos...</p>";
+		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_video",
@@ -179,6 +212,9 @@ class FacebookStream extends Stream
 			),
 			"/me/videos"
 		);
+		
+		echo "<p>... Done.</p>";
+		echo "<br />";
 	}
 	
 	/**
@@ -191,12 +227,12 @@ class FacebookStream extends Stream
 		if (!$this->user) {
 			
 			// Render Login link
-			echo "<a href=\"";
+			echo "<p>You are not logged in. <a href=\"";
 			echo $this->facebook->getLoginUrl(array(
 				"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
 				"display" => "popup"
 			));
-			echo "\">login</a><br />";
+			echo "\">Login to Facebook</a></p>";
 			
 			return false;
 		}
