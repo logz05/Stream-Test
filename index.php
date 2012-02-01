@@ -10,7 +10,7 @@
 		
 		<h1>Stream Test</h1>
 		
-		<p>This PHP application gets updates from a number of social streams, including Facebook, Twitter and SoundCloud</p>
+		<p>This PHP application gets updates from a number of social streams, including Facebook, Twitter and SoundCloud.</p>
 		
 		<?php
 

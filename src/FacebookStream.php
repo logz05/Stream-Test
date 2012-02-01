@@ -54,7 +54,7 @@ class FacebookStream extends Stream
 	 */
 	public function update()
 	{
-		echo "<h2>Update Facebook Stream...</h2>";
+		echo "<h2>Updating Facebook Stream...</h2>";
 		
 		$this->updateStatuses();
 		$this->updateCheckins();
@@ -63,7 +63,7 @@ class FacebookStream extends Stream
 		$this->updatePhotos();
 		$this->updateVideos();
 		
-		echo "<h2>Facebook Stream updated</h2>";
+		echo "<h2>...Facebook Stream updated</h2>";
 	}
 	
 	/**
