@@ -305,7 +305,7 @@ class FacebookStream extends Stream
 				}
 				
 				// Bind params for all other keys
-				foreach ($config["keys"] as $colName => $key) {
+				foreach ($config["keys"] as $key) {
 
 					$val = null;
 					
@@ -320,7 +320,7 @@ class FacebookStream extends Stream
 
 					}
 					else {
-						$val = $key;
+						$val = $object[$key];
 					}
 
 					$stmt->bindParam($params, $val, PDO::PARAM_STR);
