@@ -47,10 +47,10 @@ class FacebookStream extends Stream
 	 */
 	public function update()
 	{
-		// $this->updateStatuses();
-		// $this->updateCheckins();
-		// $this->updateEvents();
-		// $this->updateLikes();
+		$this->updateStatuses();
+		$this->updateCheckins();
+		$this->updateEvents();
+		$this->updateLikes();
 		$this->updatePhotos();
 		$this->updateVideos();
 	}
@@ -86,163 +86,80 @@ class FacebookStream extends Stream
 	
 	/**
 	 * Get Facebook statuses for the current user and store them in the database.
-	 * 
-	 * @param string $method Not required. Used for recursion
 	 */
-	private function updateStatuses($method = "/me/statuses")
-	{
-		// Get statuses
-		$statuses = $this->apiCall($method);
-		
-		// Iterate and store
-		foreach ($statuses["data"] as $status) {
-			
-			if (!$this->dateLimitReached($status["updated_time"])) {
-				return;
-			}
-			else {
-				
-				$likes = $this->countLikes($status["likes"]);
-			
-				$stmt = $this->db->prepare("INSERT INTO facebook_status (user_id, object_id, object_date, message, likes) VALUES (?, ?, ?, ?, ?)");
-			
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $status["id"], PDO::PARAM_STR);
-				$stmt->bindParam(3, $status["updated_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $status["message"], PDO::PARAM_STR);
-				$stmt->bindParam(5, $likes, PDO::PARAM_INT);
-				
-				$stmt->execute();
-			}
-		}
-		
-		if ($statuses["paging"]["next"]) {
-			$this->updateStatuses($statuses["paging"]["next"]);
-		}
+	private function updateStatuses()
+	{		
+		$this->updateObject(array(
+			"table_name" => "facebook_status",
+			"likes"=> true,
+			"date_field" => "updated_time",
+			"keys" => array(
+				"message" => "message"
+			)
+		),
+		"/me/statuses");
 	}
 	
-	private function updateCheckins($method = "/me/checkins")
-	{
-		$checkins = $this->apiCall($method);
-		
-		foreach ($checkins["data"] as $checkin) {
-			
-			if (!$this->dateLimitReached($checkin["created_time"])) {
-				return;
-			}
-			else {
-				
-				$likes = $this->countLikes($checkin["likes"]);
-				
-				$stmt = $this->db->prepare("INSERT INTO facebook_checkin (user_id, object_id, object_date, place, city, country, longitude, latitude, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-				
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $checkin["id"], PDO::PARAM_STR);
-				$stmt->bindParam(3, $checkin["created_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $checkin["place"]["name"], PDO::PARAM_STR);
-				$stmt->bindParam(5, $checkin["place"]["location"]["city"], PDO::PARAM_STR);
-				$stmt->bindParam(6, $checkin["place"]["location"]["country"], PDO::PARAM_STR);
-				$stmt->bindParam(7, $checkin["place"]["location"]["longitude"], PDO::PARAM_STR);
-				$stmt->bindParam(8, $checkin["place"]["location"]["latitude"], PDO::PARAM_STR);
-				$stmt->bindParam(9, $likes, PDO::PARAM_INT);
-				
-				$stmt->execute();
-			}
-		}
-		
-		if ($checkins["paging"]["next"]) {
-			$this->updateCheckins($checkins["paging"]["next"]);
-		}		
+	/**
+	 * Get Facebook checkins for the current user and store them in the database.
+	 */
+	private function updateCheckins()
+	{		
+		$this->updateObject(array(
+			"table_name" => "facebook_checkin",
+			"likes"=> true,
+			"date_field" => "created_time",
+			"keys" => array(
+				"message" => array("place", "name"),
+				"city" => array("place", "location", "city"),
+				"country" => array("place", "location", "country"),
+				"longitude" => array("place", "location", "longitude"),
+				"latitude" => array("place", "location", "latitude")
+			)
+		),
+		"/me/checkins");
 	}
 	
+	/**
+	 * Get Facebook events for the current user and store them in the database.
+	 */
 	private function updateEvents($method = "/me/events")
-	{
-		$events = $this->apiCall($method);
-		
-		foreach ($events["data"] as $event) {
-			
-			if (!$this->dateLimitReached($event["start_time"])) {
-				return;
-			}
-			else {
-								
-				$stmt = $this->db->prepare("INSERT INTO facebook_event (user_id, object_id, object_date, name, venue, description) VALUES (?, ?, ?, ?, ?, ?)");
-				
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $event["id"], PDO::PARAM_STR);
-				$stmt->bindParam(3, $event["start_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $event["name"], PDO::PARAM_STR);
-				$stmt->bindParam(5, $event["venue"], PDO::PARAM_STR);
-				$stmt->bindParam(6, $event["description"], PDO::PARAM_STR);
-				
-				$stmt->execute();
-			}
-		}
-		
-		if ($events["paging"]["next"]) {
-			$this->updateEvents($events["paging"]["next"]);
-		}
+	{		
+		$this->updateObject(array(
+			"table_name" => "facebook_event",
+			"likes"=> false,
+			"date_field" => "start_time",
+			"keys" => array(
+				"name" => "name",
+				"venue" => "venue",
+				"description" => "description"
+			)
+		),
+		"/me/events");
 	}
 	
+	/**
+	 * Get Facebook likes for the current user and store them in the database.
+	 */
 	private function updateLikes($method = "/me/likes")
-	{
-		$likes = $this->apiCall($method);
-		
-		foreach ($likes["data"] as $like) {
-			
-			if (!$this->dateLimitReached($like["created_time"])) {
-				return;
-			}
-			else {
-				
-				$stmt = $this->db->prepare("INSERT INTO facebook_like (user_id, object_id, object_date, name, category) VALUES (?, ?, ?, ?, ?)");
-				
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $like["id"], PDO::PARAM_STR);
-				$stmt->bindParam(3, $like["created_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $like["name"], PDO::PARAM_STR);
-				$stmt->bindParam(5, $like["category"], PDO::PARAM_STR);
-				
-				$stmt->execute();
-			}
-		}
-		
-		if ($likes["paging"]["next"]) {
-			$this->updateLikes($likes["paging"]["next"]);
-		}
+	{		
+		$this->updateObject(array(
+			"table_name" => "facebook_like",
+			"likes"=> false,
+			"date_field" => "created_time",
+			"keys" => array(
+				"name" => "name",
+				"category" => "category"
+			)
+		),
+		"/me/events");
 	}
 	
+	/**
+	 * Get Facebook photos for the current user and store them in the database.
+	 */
 	private function updatePhotos($method = "/me/photos")
-	{
-		/*$photos = $this->apiCall($method);
-		
-		foreach ($photos["data"] as $photo) {
-			
-			if (!$this->dateLimitReached($photo["created_time"])) {
-				return;
-			}
-			else {
-				
-				$likes = $this->countLikes($photo["likes"]);
-				
-				$stmt = $this->db->prepare("INSERT INTO facebook_photo (user_id, object_id, object_date, from_name, source, link, likes) VALUES (?, ?, ?, ?, ?, ?, ?)");
-				
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
-				$stmt->bindParam(2, $photo["id"], PDO::PARAM_STR);
-				$stmt->bindParam(3, $photo["created_time"], PDO::PARAM_STR);
-				$stmt->bindParam(4, $photo["from"]["name"], PDO::PARAM_STR);
-				$stmt->bindParam(5, $photo["source"], PDO::PARAM_STR);
-				$stmt->bindParam(6, $photo["link"], PDO::PARAM_STR);
-				$stmt->bindParam(7, $likes, PDO::PARAM_INT);
-								
-				$stmt->execute();
-			}
-		}
-		
-		if ($photos["paging"]["next"]) {
-			$this->updatePhotos($photos["paging"]["next"]);
-		}*/
-		
+	{		
 		$this->updateObject(array(
 			"table_name" => "facebook_photo",
 			"likes"=> true,
@@ -256,16 +173,36 @@ class FacebookStream extends Stream
 		"/me/photos");
 	}
 	
+	/**
+	 * Get Facebook videos for the current user and store them in the database.
+	 */
 	private function updateVideos() {}
 	
+	/**
+	 * Get a set of objects from the Facebook Graph and store them in the data-
+	 * base if they're not in there already.
+	 * 
+	 * @param type $config Config object to tell the method what to store:
+	 *					   - string  table_name : DB table name 
+	 *                     - boolean likes      : Whether or not count likes for each object
+	 *                     - string  date_field : The name of the object field to use as the date
+	 *                     - array   keys       : Set of key value pairs, mapping DB colum names
+	 *                                            to object keys. Value can be array if keys are nested
+	 *                                            e.g array("place", "name")
+	 * @param type $method Facebook API method name
+	 * @return null If / when date limit is reached
+	 */
 	private function updateObject($config, $method = "")
-	{		
+	{
+		// Call Facebook API
 		$objects = $this->apiCall($method);
 		
+		// Iterate over returned objects
 		foreach ($objects["data"] as $object) {
 			
+			// If we're passed the date limit, stop the method
 			if (!$this->dateLimitReached($object[$config["date_field"]])) {
-				return;
+				return null;
 			}
 			else {
 				
@@ -307,22 +244,18 @@ class FacebookStream extends Stream
 
 					$val = null;
 					
-					// Nested data?
+					// Nested keys?
 					if (is_array($key)) {
-						
 						$val = $object;
-						
 						foreach ($key as $k) {
 							$val = $val[$k];
 						}
-
 					}
 					else {
 						$val = $object[$key];
 					}
 
 					$stmt->bindValue($params, $val, PDO::PARAM_STR);
-
 					$params++;
 				}
 				
@@ -333,7 +266,7 @@ class FacebookStream extends Stream
 		
 		// Go to next page of objects if there is one
 		if ($objects["paging"]["next"]) {
-			$this->updateObject(&$config, $objects["paging"]["next"]);
+			$this->updateObject($config, $objects["paging"]["next"]);
 		}
 	}
 	
