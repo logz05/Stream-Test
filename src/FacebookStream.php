@@ -76,7 +76,7 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_status",
-				"likes"=> true,
+				"likes"      => true,
 				"date_field" => "updated_time",
 				"keys" => array(
 					"message" => "message"
@@ -99,14 +99,14 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_checkin",
-				"likes"=> true,
+				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
-					"message" => array("place", "name"),
-					"city" => array("place", "location", "city"),
-					"country" => array("place", "location", "country"),
+					"message"   => array("place", "name"),
+					"city"      => array("place", "location", "city"),
+					"country"   => array("place", "location", "country"),
 					"longitude" => array("place", "location", "longitude"),
-					"latitude" => array("place", "location", "latitude")
+					"latitude"  => array("place", "location", "latitude")
 				)
 			),
 			"/me/checkins"
@@ -126,11 +126,11 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_event",
-				"likes"=> false,
+				"likes"      => false,
 				"date_field" => "start_time",
 				"keys" => array(
-					"name" => "name",
-					"venue" => "venue",
+					"name"        => "name",
+					"venue"       => "venue",
 					"description" => "description"
 				)
 			),
@@ -151,10 +151,10 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_like",
-				"likes"=> false,
+				"likes"      => false,
 				"date_field" => "created_time",
 				"keys" => array(
-					"name" => "name",
+					"name"     => "name",
 					"category" => "category"
 				)
 			),
@@ -175,12 +175,12 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_photo",
-				"likes"=> true,
+				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
 					"from_name" => array("from", "name"),
-					"source" => "source",
-					"link" => "link"
+					"source"    => "source",
+					"link"      => "link"
 				)
 			),
 			"/me/photos"
@@ -200,14 +200,14 @@ class FacebookStream extends Stream
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_video",
-				"likes"=> true,
+				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
-					"from_name" => array("from", "name"),
-					"name" => "name",
+					"from_name"   => array("from", "name"),
+					"name"        => "name",
 					"description" => "description",
-					"picture" => "picture",
-					"embed_html" => "embed_html"
+					"picture"     => "picture",
+					"embed_html"  => "embed_html"
 				)
 			),
 			"/me/videos"
@@ -263,7 +263,7 @@ class FacebookStream extends Stream
 		// Iterate over returned objects
 		foreach ($objects["data"] as $object) {
 			
-			// If we're passed the date limit, stop the method
+			// If we're past the date limit, stop the method
 			if (!$this->dateLimitReached($object[$config["date_field"]])) {
 				return null;
 			}
