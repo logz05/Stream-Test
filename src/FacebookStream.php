@@ -214,7 +214,7 @@ class FacebookStream extends Stream
 	
 	private function updatePhotos($method = "/me/photos")
 	{
-		$photos = $this->apiCall($method);
+		/*$photos = $this->apiCall($method);
 		
 		foreach ($photos["data"] as $photo) {
 			
@@ -241,10 +241,104 @@ class FacebookStream extends Stream
 		
 		if ($photos["paging"]["next"]) {
 			$this->updatePhotos($photos["paging"]["next"]);
-		}
+		}*/
+		
+		updateObject(array(
+			"table_name" => "facebook_photo",
+			"likes"=> true,
+			"date_field" => "created_time",
+			"keys" => array(
+				"from_name" => array("from", "name"),
+				"source" => "source",
+				"link" => "link"
+			)
+		),
+		"/me/photos");
 	}
 	
 	private function updateVideos() {}
+	
+	private function updateObject($config, $method = "")
+	{		
+		$objects = $this->apiCall($method);
+		
+		foreach ($objects["data"] as $object) {
+			
+			if (!$this->dateLimitReached($object[$config["date_field"]])) {
+				return;
+			}
+			else {
+				
+				// Prepare SQL statement
+				$sql = "INSERT INTO {$config["table_name"]} (user_id, object_id, object_date";
+				$sqlVals = "?, ?, ?";
+				
+				if ($config["likes"]) {
+					$sql .= ", likes";
+					$sqlVals .= ", ?";
+				}
+				
+				foreach ($config["keys"] as $colName => $key) {
+					$sql .= ", $colName";
+					$sqlVals .= ", ?";
+				}
+				
+				$sql .= ") VALUES ($sqlVals)";
+				
+				echo $sql;
+				
+				/*$stmt = $this->db->prepare($sql);
+				
+				// Bind initial params
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $object["id"], PDO::PARAM_STR);
+				$stmt->bindParam(3, $object[$config["date_field"]], PDO::PARAM_STR);
+				
+				// Current params amount
+				$params = 4;
+				
+				// Are we counting likes for the object?
+				if ($config["likes"]) {
+					$likes = $this->countLikes($object["likes"]);
+					$stmt->bindParam(4, $likes, PDO::PARAM_INT);
+					$params = 5;
+				}
+				
+				// Bind params for all other keys
+				foreach ($config["keys"] as $colName => $key) {
+
+					$val = null;
+					
+					// Nested data?
+					if (is_array($key)) {
+						
+						$val = $object;
+						
+						foreach ($key as $k) {
+							$val = $val[$k];
+						}
+
+					}
+					else {
+						$val = $key;
+					}
+
+					$stmt->bindParam($params, $val, PDO::PARAM_STR);
+
+					$params++;
+				}
+				
+				// Execute SQL
+				$stmt->execute();
+				*/
+			}
+		}
+		
+		// Go to next page of objects if there is one
+		if ($objects["paging"]["next"]) {
+			$this->updateObject(&$config, $objects["paging"]["next"]);
+		}
+	}
 	
 	/**
 	 * Count likes. Will move through all pages to build the total.
