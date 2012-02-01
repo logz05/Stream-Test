@@ -243,7 +243,7 @@ class FacebookStream extends Stream
 			$this->updatePhotos($photos["paging"]["next"]);
 		}*/
 		
-		updateObject(array(
+		$this->updateObject(array(
 			"table_name" => "facebook_photo",
 			"likes"=> true,
 			"date_field" => "created_time",
