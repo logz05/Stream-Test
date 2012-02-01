@@ -225,13 +225,13 @@ class FacebookStream extends Stream
 				
 				$likes = $this->countLikes($photo["likes"]);
 				
-				$stmt = $this->db->prepare("INSERT INTO facebook_photo (user_id, object_id, object_date) VALUES (?, ?, ?)");
+				$stmt = $this->db->prepare("INSERT INTO facebook_photo (user_id, object_id, object_date, source) VALUES (?, ?, ?, ?)");
 				
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 				$stmt->bindParam(2, $photo["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $photo["created_time"], PDO::PARAM_STR);
 				//$stmt->bindParam(4, $photo["from"]["name"], PDO::PARAM_STR);
-				//$stmt->bindParam(5, $photo["source"], PDO::PARAM_STR);
+				$stmt->bindParam(4, $photo["source"], PDO::PARAM_STR);
 				//$stmt->bindParam(6, $photo["link"], PDO::PARAM_STR);
 				//$stmt->bindParam(5, $likes, PDO::PARAM_INT);
 								
