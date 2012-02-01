@@ -287,7 +287,7 @@ class FacebookStream extends Stream
 				
 				echo $sql;
 				
-				/*$stmt = $this->db->prepare($sql);
+				$stmt = $this->db->prepare($sql);
 				
 				// Bind initial params
 				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
@@ -330,7 +330,6 @@ class FacebookStream extends Stream
 				
 				// Execute SQL
 				$stmt->execute();
-				*/
 			}
 		}
 		
