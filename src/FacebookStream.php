@@ -43,22 +43,143 @@ class FacebookStream extends Stream
 	}
 	
 	/**
+	 * @see Stream::get()
+	 */
+	public function get() {}
+	
+	/**
 	 * @see Stream::update()
 	 */
 	public function update()
 	{
-		$this->updateStatuses();
-		$this->updateCheckins();
-		$this->updateEvents();
-		$this->updateLikes();
-		$this->updatePhotos();
+		//$this->updateStatuses();
+		//$this->updateCheckins();
+		//$this->updateEvents();
+		//$this->updateLikes();
+		//$this->updatePhotos();
 		$this->updateVideos();
 	}
 	
 	/**
-	 * @see Stream::get()
+	 * Get Facebook statuses for the current user and store them in the database.
 	 */
-	public function get() {}
+	public function updateStatuses()
+	{		
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_status",
+				"likes"=> true,
+				"date_field" => "updated_time",
+				"keys" => array(
+					"message" => "message"
+				)
+			),
+			"/me/statuses"
+		);
+	}
+	
+	/**
+	 * Get Facebook checkins for the current user and store them in the database.
+	 */
+	public function updateCheckins()
+	{		
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_checkin",
+				"likes"=> true,
+				"date_field" => "created_time",
+				"keys" => array(
+					"message" => array("place", "name"),
+					"city" => array("place", "location", "city"),
+					"country" => array("place", "location", "country"),
+					"longitude" => array("place", "location", "longitude"),
+					"latitude" => array("place", "location", "latitude")
+				)
+			),
+			"/me/checkins"
+		);
+	}
+	
+	/**
+	 * Get Facebook events for the current user and store them in the database.
+	 */
+	public function updateEvents($method = "/me/events")
+	{		
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_event",
+				"likes"=> false,
+				"date_field" => "start_time",
+				"keys" => array(
+					"name" => "name",
+					"venue" => "venue",
+					"description" => "description"
+				)
+			),
+			"/me/events"
+		);
+	}
+	
+	/**
+	 * Get Facebook likes for the current user and store them in the database.
+	 */
+	public function updateLikes()
+	{		
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_like",
+				"likes"=> false,
+				"date_field" => "created_time",
+				"keys" => array(
+					"name" => "name",
+					"category" => "category"
+				)
+			),
+			"/me/likes"
+		);
+	}
+	
+	/**
+	 * Get Facebook photos for the current user and store them in the database.
+	 */
+	public function updatePhotos()
+	{		
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_photo",
+				"likes"=> true,
+				"date_field" => "created_time",
+				"keys" => array(
+					"from_name" => array("from", "name"),
+					"source" => "source",
+					"link" => "link"
+				)
+			),
+			"/me/photos"
+		);
+	}
+	
+	/**
+	 * Get Facebook videos for the current user and store them in the database.
+	 */
+	public function updateVideos()
+	{
+		$this->updateObject(
+			array(
+				"table_name" => "facebook_video",
+				"likes"=> true,
+				"date_field" => "created_time",
+				"keys" => array(
+					"from_name" => array("from", "name"),
+					"name" => "name",
+					"description" => "description",
+					"picture" => "picture",
+					"embed_html" => "embed_html"
+				)
+			),
+			"/me/videos"
+		);
+	}
 	
 	/**
 	 * Test to see if we have a Facebook user object.
@@ -83,100 +204,6 @@ class FacebookStream extends Stream
 			return true;
 		}
 	}
-	
-	/**
-	 * Get Facebook statuses for the current user and store them in the database.
-	 */
-	private function updateStatuses()
-	{		
-		$this->updateObject(array(
-			"table_name" => "facebook_status",
-			"likes"=> true,
-			"date_field" => "updated_time",
-			"keys" => array(
-				"message" => "message"
-			)
-		),
-		"/me/statuses");
-	}
-	
-	/**
-	 * Get Facebook checkins for the current user and store them in the database.
-	 */
-	private function updateCheckins()
-	{		
-		$this->updateObject(array(
-			"table_name" => "facebook_checkin",
-			"likes"=> true,
-			"date_field" => "created_time",
-			"keys" => array(
-				"message" => array("place", "name"),
-				"city" => array("place", "location", "city"),
-				"country" => array("place", "location", "country"),
-				"longitude" => array("place", "location", "longitude"),
-				"latitude" => array("place", "location", "latitude")
-			)
-		),
-		"/me/checkins");
-	}
-	
-	/**
-	 * Get Facebook events for the current user and store them in the database.
-	 */
-	private function updateEvents($method = "/me/events")
-	{		
-		$this->updateObject(array(
-			"table_name" => "facebook_event",
-			"likes"=> false,
-			"date_field" => "start_time",
-			"keys" => array(
-				"name" => "name",
-				"venue" => "venue",
-				"description" => "description"
-			)
-		),
-		"/me/events");
-	}
-	
-	/**
-	 * Get Facebook likes for the current user and store them in the database.
-	 */
-	private function updateLikes($method = "/me/likes")
-	{		
-		$this->updateObject(array(
-			"table_name" => "facebook_like",
-			"likes"=> false,
-			"date_field" => "created_time",
-			"keys" => array(
-				"name" => "name",
-				"category" => "category"
-			)
-		),
-		"/me/events");
-	}
-	
-	/**
-	 * Get Facebook photos for the current user and store them in the database.
-	 */
-	private function updatePhotos($method = "/me/photos")
-	{		
-		$this->updateObject(array(
-			"table_name" => "facebook_photo",
-			"likes"=> true,
-			"date_field" => "created_time",
-			"keys" => array(
-				"from_name" => array("from", "name"),
-				"source" => "source",
-				"link" => "link"
-			)
-		),
-		"/me/photos");
-	}
-	
-	/**
-	 * Get Facebook videos for the current user and store them in the database.
-	 */
-	private function updateVideos() {}
 	
 	/**
 	 * Get a set of objects from the Facebook Graph and store them in the data-
