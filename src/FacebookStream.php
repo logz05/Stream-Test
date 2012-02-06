@@ -91,6 +91,10 @@ class FacebookStream extends Stream
 	
 	public function addAccount()
 	{
+		var_dump($this->facebook);
+		echo "<br />";
+		var_dump($this->facebook->getUser);
+		
 		$this->facebookUser = $this->facebook->getUser();
 		
 		if ($this->facebookUser) {

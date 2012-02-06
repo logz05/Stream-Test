@@ -8,6 +8,7 @@ require_once $_SERVER["DOCUMENT_ROOT"] . '/src/FacebookStream.php';
 switch($_GET["type"]) {
 
 	case "facebook_login":
+		echo "Got here!<br />";
 		$fbStream = new FacebookStream($_GET["user"]);
 		$fbStream->addAccount();
 		//header("Location: index.php");
