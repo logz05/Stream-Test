@@ -64,7 +64,7 @@ abstract class Stream
 	 * If the Stream requires authentication, override this method to authenticate
 	 * the user.
 	 */
-	public function authenticate() {}
+	public function authenticate($accountId) {}
 	
 	/**
 	 * Check if the given date is past the date limit.

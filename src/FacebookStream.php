@@ -17,7 +17,7 @@ class FacebookStream extends Stream
 	/**
 	 * @var Facebook $facebook Facebook object from PHP SDK  
 	 */
-	private $facebook;
+	public $facebook;
 	/**
 	 * @var object $facebookUser Facebook user object 
 	 */
@@ -51,23 +51,20 @@ class FacebookStream extends Stream
 	 * @see Stream::update()
 	 */
 	public function update()
-	{
-		echo "<h2>Updating Facebook Stream...</h2>";
-		
+	{		
 		$this->updateStatuses();
 		$this->updateCheckins();
 		$this->updateEvents();
 		$this->updateLikes();
 		$this->updatePhotos();
 		$this->updateVideos();
-		
-		echo "<h2>...Facebook Stream updated</h2>";
 	}
 	
-	public function authenticate()
+	public function authenticate($accountId)
 	{
-		$stmt = $this->db->prepare("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ?");
+		$stmt = $this->db->prepare("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ? AND facebook_id = ?");
 		$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+		$stmt->bindParam(2, $accountId, PDO::PARAM_STR);
 		$stmt->execute();
 		
 		$account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -79,22 +76,16 @@ class FacebookStream extends Stream
 				return true;
 			}
 			else {
-				$this->renderLoginButton();
 				return false;
 			}
 		}
 		else {
-			$this->renderLoginButton();
 			return false;
 		}
 	}
 	
 	public function addAccount()
-	{
-		var_dump($this->facebook);
-		echo "<br />";
-		var_dump($this->facebook->getUser);
-		
+	{		
 		$this->facebookUser = $this->facebook->getUser();
 		
 		if ($this->facebookUser) {
@@ -109,13 +100,20 @@ class FacebookStream extends Stream
 		}
 	}
 	
+	public function getAccounts()
+	{
+		$stmt = $this->db->prepare("SELECT * FROM facebook_accounts WHERE user_id = ?");
+		$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+		$stmt->execute();
+		
+		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
+	
 	/**
 	 * Get Facebook statuses for the current user and store them in the database.
 	 */
 	public function updateStatuses()
-	{
-		echo "<p>Updating status updates...</p>";
-		
+	{	
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_statuses",
@@ -127,18 +125,13 @@ class FacebookStream extends Stream
 			),
 			"/me/statuses"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook checkins for the current user and store them in the database.
 	 */
 	public function updateCheckins()
-	{
-		echo "<p>Updating checkins...</p>";
-		
+	{	
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_checkins",
@@ -154,18 +147,13 @@ class FacebookStream extends Stream
 			),
 			"/me/checkins"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook events for the current user and store them in the database.
 	 */
 	public function updateEvents()
-	{
-		echo "<p>Updating events...</p>";
-		
+	{		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_events",
@@ -179,18 +167,13 @@ class FacebookStream extends Stream
 			),
 			"/me/events"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook likes for the current user and store them in the database.
 	 */
 	public function updateLikes()
-	{
-		echo "<p>Updating likes...</p>";
-		
+	{		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_likes",
@@ -203,18 +186,13 @@ class FacebookStream extends Stream
 			),
 			"/me/likes"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook photos for the current user and store them in the database.
 	 */
 	public function updatePhotos()
-	{
-		echo "<p>Updating photos...</p>";
-		
+	{		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_photos",
@@ -228,18 +206,13 @@ class FacebookStream extends Stream
 			),
 			"/me/photos"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
 	 * Get Facebook videos for the current user and store them in the database.
 	 */
 	public function updateVideos()
-	{
-		echo "<p>Updating videos...</p>";
-		
+	{		
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_videos",
@@ -255,9 +228,6 @@ class FacebookStream extends Stream
 			),
 			"/me/videos"
 		);
-		
-		echo "<p>... Done.</p>";
-		echo "<br />";
 	}
 	
 	/**
@@ -266,7 +236,7 @@ class FacebookStream extends Stream
 	 * When clicked, it will either log the user in to Facebook directly or
 	 * show them the app permissions dialogue.
 	 */
-	private function renderLoginButton()
+	public function renderLoginButton()
 	{
 		echo "<p>You are not logged in. <a href=\"";
 		
