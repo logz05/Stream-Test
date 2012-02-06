@@ -269,7 +269,7 @@ class FacebookStream extends Stream
 		echo $this->facebook->getLoginUrl(array(
 			"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
 			"display" => "popup",
-			"redirect_url" => "http://" . $_SERVER["HTTP_HOST"] . "/action.php?type=facebook_login&user={$this->userId}"
+			"redirect_uri" => "http://" . $_SERVER["HTTP_HOST"] . "/action.php?type=facebook_login&user={$this->userId}"
 		));
 			
 		echo "\">Login to Facebook</a></p>";
