@@ -66,7 +66,7 @@ class FacebookStream extends Stream
 	
 	public function authenticate()
 	{
-		$stmt = $this->db->query("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ?");
+		$stmt = $this->db->prepare("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ?");
 		$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 		$stmt->execute();
 		
@@ -95,7 +95,7 @@ class FacebookStream extends Stream
 		
 		if ($this->facebookUser) {
 			
-			$stmt = $this->db->exec("INSERT INTO facebook_accounts (user_id, facebook_id, access_token) VALUES (?, ?, ?)");
+			$stmt = $this->db->prepare("INSERT INTO facebook_accounts (user_id, facebook_id, access_token) VALUES (?, ?, ?)");
 			
 			$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 			$stmt->bindParam(2, $this->facebookUser, PDO::PARAM_STR);
