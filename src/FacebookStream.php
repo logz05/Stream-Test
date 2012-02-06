@@ -19,27 +19,25 @@ class FacebookStream extends Stream
 	 */
 	private $facebook;
 	/**
-	 * @var object $user Facebook user object 
+	 * @var object $facebookUser Facebook user object 
 	 */
-	private $user;
+	private $facebookUser;
 	
 	/**
 	 * Constructor.
 	 * 
 	 * @param int $userId User ID
-	 * @param string $appId Facebook App ID
-	 * @param string $appSecret Facebook App Secret 
 	 */
-	public function __construct($userId, $appId, $appSecret)
+	public function __construct($userId)
 	{
 		parent::__construct($userId);
 				
 		$this->facebook = new Facebook(array(
-			'appId' => $appId,
-			'secret' => $appSecret
+			'appId' => self::$config["facebook"]["app_id"],
+			'secret' => self::$config["facebook"]["app_secret"]
 		));
 		
-		$this->user = $this->facebook->getUser();
+		$this->facebookUser = null;
 	}
 	
 	/**
@@ -66,6 +64,47 @@ class FacebookStream extends Stream
 		echo "<h2>...Facebook Stream updated</h2>";
 	}
 	
+	public function authenticate()
+	{
+		$stmt = $this->db->query("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ?");
+		$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+		$stmt->execute();
+		
+		$account = $stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if ($account) {
+			if ($account["access_token"]) {
+				$this->facebook->setAccessToken($account["access_token"]);
+				$this->facebookUser = $this->facebook->getUser();
+				return true;
+			}
+			else {
+				$this->renderLoginButton();
+				return false;
+			}
+		}
+		else {
+			$this->renderLoginButton();
+			return false;
+		}
+	}
+	
+	public function addAccount()
+	{
+		$this->facebookUser = $this->facebook->getUser();
+		
+		if ($this->facebookUser) {
+			
+			$stmt = $this->db->exec("INSERT INTO facebook_accounts (user_id, facebook_id, access_token) VALUES (?, ?, ?)");
+			
+			$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+			$stmt->bindParam(2, $this->facebookUser, PDO::PARAM_STR);
+			$stmt->bindParam(3, $this->facebook->getAccessToken(), PDO::PARAM_STR);
+			
+			$stmt->execute();
+		}
+	}
+	
 	/**
 	 * Get Facebook statuses for the current user and store them in the database.
 	 */
@@ -75,7 +114,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_status",
+				"table_name" => "facebook_statuses",
 				"likes"      => true,
 				"date_field" => "updated_time",
 				"keys" => array(
@@ -98,7 +137,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_checkin",
+				"table_name" => "facebook_checkins",
 				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
@@ -125,7 +164,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_event",
+				"table_name" => "facebook_events",
 				"likes"      => false,
 				"date_field" => "start_time",
 				"keys" => array(
@@ -150,7 +189,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_like",
+				"table_name" => "facebook_likes",
 				"likes"      => false,
 				"date_field" => "created_time",
 				"keys" => array(
@@ -174,7 +213,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_photo",
+				"table_name" => "facebook_photos",
 				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
@@ -199,7 +238,7 @@ class FacebookStream extends Stream
 		
 		$this->updateObject(
 			array(
-				"table_name" => "facebook_video",
+				"table_name" => "facebook_videos",
 				"likes"      => true,
 				"date_field" => "created_time",
 				"keys" => array(
@@ -218,27 +257,22 @@ class FacebookStream extends Stream
 	}
 	
 	/**
-	 * Test to see if we have a Facebook user object.
+	 * Render a Facebook login button to screen.
 	 * 
-	 * @see Stream::authenticated()
+	 * When clicked, it will either log the user in to Facebook directly or
+	 * show them the app permissions dialogue.
 	 */
-	protected function authenticated()
+	private function renderLoginButton()
 	{
-		if (!$this->user) {
+		echo "<p>You are not logged in. <a href=\"";
+		
+		echo $this->facebook->getLoginUrl(array(
+			"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
+			"display" => "popup",
+			"redirect_url" => ($_SERVER["HTTPS"] ? "https://" : "http://") . $_SERVER["HTTP_HOST"] . "/action.php?type=facebook_login&user={$this->userId}"
+		));
 			
-			// Render Login link
-			echo "<p>You are not logged in. <a href=\"";
-			echo $this->facebook->getLoginUrl(array(
-				"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
-				"display" => "popup"
-			));
-			echo "\">Login to Facebook</a></p>";
-			
-			return false;
-		}
-		else {
-			return true;
-		}
+		echo "\">Login to Facebook</a></p>";
 	}
 	
 	/**
@@ -365,22 +399,16 @@ class FacebookStream extends Stream
 	 * @return mixed Results array, or null if error 
 	 */
 	private function apiCall($method, $params = null)
-	{
-		if ($this->authenticated()) {
-			
-			try {
-				if ($params != null) {
-					return $this->facebook->api($method);
-				}
-				else {
-					return $this->facebook->api($method, "GET", $params);
-				}
+	{			
+		try {
+			if ($params != null) {
+				return $this->facebook->api($method);
 			}
-			catch(FacebookApiException $e) {
-				return null;
+			else {
+				return $this->facebook->api($method, "GET", $params);
 			}
 		}
-		else {
+		catch(FacebookApiException $e) {
 			return null;
 		}
 	}

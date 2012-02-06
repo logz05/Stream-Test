@@ -24,6 +24,10 @@ abstract class Stream
 	 * @var DateTime $dateLimit Date at which to stop looking for objects to store 
 	 */
 	public static $dateLimit;
+	/**
+	 * @var array $config Array of config data for the Stream app 
+	 */
+	protected static $config;
 	
 	/**
 	 * Constructor.
@@ -35,6 +39,10 @@ abstract class Stream
 		$this->db = Database::connect();
 		$this->userId = $userId;
 		$this->dateLimit = new DateTime(self::$dateLimit);
+		
+		if (!self::$config) {
+			self::$config = parse_ini_file($_SERVER["DOCUMENT_ROOT"] . "/config.ini", true);
+		}
 	}
 	
 	/**
@@ -53,10 +61,10 @@ abstract class Stream
 	public abstract function get();
 	
 	/**
-	 * If the Stream requires authentication, override this method with the
-	 * test to check if we are authenticated.
+	 * If the Stream requires authentication, override this method to authenticate
+	 * the user.
 	 */
-	protected function authenticated() {}
+	public function authenticate() {}
 	
 	/**
 	 * Check if the given date is past the date limit.
