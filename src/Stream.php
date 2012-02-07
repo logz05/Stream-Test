@@ -40,6 +40,7 @@ abstract class Stream
 		$this->userId = $userId;
 		$this->dateLimit = new DateTime(self::$dateLimit);
 		
+		// Load config
 		if (!self::$config) {
 			self::$config = parse_ini_file($_SERVER["DOCUMENT_ROOT"] . "/config.ini", true);
 		}
@@ -62,9 +63,12 @@ abstract class Stream
 	
 	/**
 	 * If the Stream requires authentication, override this method to authenticate
-	 * the user.
+	 * an account.
+	 * 
+	 * @param mixed $accountId Unique ID of account to authenticate
+	 * @return boolean True if authentication was successful, false if not
 	 */
-	public function authenticate($accountId) {}
+	public function authenticate($accountId) { return true; }
 	
 	/**
 	 * Check if the given date is past the date limit.

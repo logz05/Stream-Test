@@ -11,17 +11,9 @@
 class Database
 {
 	/**
-	 * @var string $dbName Database name 
+	 * @var array $config Array of config data for the database 
 	 */
-	public static $dbName = "stream_test";
-	/**
-	 * @var string $user Database user  
-	 */
-	public static $user = "stream_test";
-	/**
-	 * @var string $password Database password 
-	 */
-	public static $password = "str34mt35t";
+	public static $config;
 	
 	/**
 	 * Create a PDO instance with the supplied values.
@@ -30,8 +22,13 @@ class Database
 	 */
 	public static function connect()
 	{
+		// Load config
+		if (!self::$config) {
+			self::$config = parse_ini_file($_SERVER["DOCUMENT_ROOT"] . "/config.ini", true);
+		}
+		
 		try {
-			return new PDO("mysql:dbname=" . self::$dbName . ";host=localhost", self::$user, self::$password);
+			return new PDO("mysql:dbname=" . self::$config["database"]["dbname"] . ";host=localhost", self::$config["database"]["dbuser"], self::$config["database"]["dbpassword"]);
 		}
 		catch(Exception $e) {
 			return null;

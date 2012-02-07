@@ -19,7 +19,7 @@ class FacebookStream extends Stream
 	 */
 	public $facebook;
 	/**
-	 * @var object $facebookUser Facebook user object 
+	 * @var int $facebookUser Facebook user account ID
 	 */
 	private $facebookUser;
 	
@@ -46,7 +46,7 @@ class FacebookStream extends Stream
 	public function get() {}
 	
 	/**
-	 * Updates all Facebook objects for the authenticated user.
+	 * Updates all Facebook objects for the authenticated Facebook account.
 	 * 
 	 * @see Stream::update()
 	 */
@@ -60,9 +60,16 @@ class FacebookStream extends Stream
 		$this->updateVideos();
 	}
 	
+	/**
+	 * Checks if the given Facebook account exists in the database and sees if
+	 * it has a valid auth token associated with it.
+	 * 
+	 * @see Stream::authenticate() 
+	 */
 	public function authenticate($accountId)
 	{
-		$stmt = $this->db->prepare("SELECT facebook_id, access_token FROM facebook_accounts WHERE user_id = ? AND facebook_id = ?");
+		// Look for account in db
+		$stmt = $this->db->prepare("SELECT account_id, access_token FROM facebook_accounts WHERE user_id = ? AND account_id = ?");
 		$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 		$stmt->bindParam(2, $accountId, PDO::PARAM_STR);
 		$stmt->execute();
@@ -70,6 +77,7 @@ class FacebookStream extends Stream
 		$account = $stmt->fetch(PDO::FETCH_ASSOC);
 		
 		if ($account) {
+			// See if it has an access token
 			if ($account["access_token"]) {
 				$this->facebook->setAccessToken($account["access_token"]);
 				$this->facebookUser = $this->facebook->getUser();
@@ -84,22 +92,60 @@ class FacebookStream extends Stream
 		}
 	}
 	
+	/**
+	 * Add the currently logged in Facebook user to the database.
+	 * 
+	 * Adding occurs after the user has given the application the required permissions. If
+	 * the account already exists in the database, the method will update the access token for the account.
+	 * 
+	 * @return mixed "added" if add was successful, "updated" if account updated or false if neither 
+	 */
 	public function addAccount()
 	{		
 		$this->facebookUser = $this->facebook->getUser();
 		
 		if ($this->facebookUser) {
 			
-			$stmt = $this->db->prepare("INSERT INTO facebook_accounts (user_id, facebook_id, access_token) VALUES (?, ?, ?)");
-			
+			// Check if account already exists for user
+			$stmt = $this->db->prepare("SELECT * FROM facebook_accounts WHERE user_id = ? AND account_id = ?");
 			$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
 			$stmt->bindParam(2, $this->facebookUser, PDO::PARAM_STR);
-			$stmt->bindParam(3, $this->facebook->getAccessToken(), PDO::PARAM_STR);
-			
 			$stmt->execute();
+			$account = $stmt->fetch(PDO::FETCH_ASSOC);
+			
+			// Account doesn't exist for user
+			if (!$account) {
+				
+				$stmt = $this->db->prepare("INSERT INTO facebook_accounts (user_id, account_id, access_token) VALUES (?, ?, ?)");
+				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(2, $this->facebookUser, PDO::PARAM_STR);
+				$stmt->bindParam(3, $this->facebook->getAccessToken(), PDO::PARAM_STR);
+				$stmt->execute();
+			
+				return "added";
+			}
+			// Account does exist for user
+			else {
+				
+				$stmt = $this->db->prepare("UPDATE facebook_accounts SET access_token = ? WHERE user_id = ? AND account_id = ?");
+				$stmt->bindParam(1, $this->facebook->getAccessToken(), PDO::PARAM_STR);
+				$stmt->bindParam(2, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(3, $this->facebookUser, PDO::PARAM_STR);
+				$stmt->execute();
+				
+				return "updated";
+			}
+		}
+		else {
+			return false;
 		}
 	}
 	
+	/**
+	 * Get all Facebook accounts the user is linked to.
+	 * 
+	 * @return array Associative array of user accounts 
+	 */
 	public function getAccounts()
 	{
 		$stmt = $this->db->prepare("SELECT * FROM facebook_accounts WHERE user_id = ?");
@@ -173,7 +219,7 @@ class FacebookStream extends Stream
 	 * Get Facebook likes for the current user and store them in the database.
 	 */
 	public function updateLikes()
-	{		
+	{			
 		$this->updateObject(
 			array(
 				"table_name" => "facebook_likes",
@@ -235,18 +281,60 @@ class FacebookStream extends Stream
 	 * 
 	 * When clicked, it will either log the user in to Facebook directly or
 	 * show them the app permissions dialogue.
+	 * 
+	 * @param string  $text   Optional. Label for the link
+	 * @param boolean $return Optional. Whether or not to to return the markup. False (echo it) by default
 	 */
-	public function renderLoginButton()
+	public function renderLoginButton($text = "Login to Facebook", $return = false)
 	{
-		echo "<p>You are not logged in. <a href=\"";
+		$markup = "";
 		
-		echo $this->facebook->getLoginUrl(array(
+		$markup .= "<a href=\"";
+		
+		$markup .= $this->facebook->getLoginUrl(array(
 			"scope" => "offline_access, user_checkins, user_events, user_likes, user_photos, user_status, user_videos",
 			"display" => "popup",
-			"redirect_uri" => "http://" . $_SERVER["HTTP_HOST"] . "/action.php?type=facebook_login&user={$this->userId}"
+			"redirect_uri" => "http://" . $_SERVER["HTTP_HOST"] . "/action.php?type=facebook_add&user={$this->userId}"
 		));
 			
-		echo "\">Login to Facebook</a></p>";
+		$markup .= "\">$text</a>";
+		
+		if ($return) {
+			return $markup;
+		}
+		else {
+			echo $markup;
+			return null;
+		}
+	}
+	
+	/**
+	 * Render a Facebook login button to screen.
+	 * 
+	 * When clicked, it will either log the user out of Facebook
+	 * 
+	 * @param string  $text   Optional. Label for the link
+	 * @param boolean $return Optional. Whether or not to to return the markup. False (echo it) by default
+	 */
+	public function renderLogoutButton($text = "Logout of Facebook", $return = false)
+	{
+		$markup = "";
+		
+		$markup .="<a href=\"";
+			
+		$markup .= $this->facebook->getLogoutUrl(array(
+			"next" => "http://" . $_SERVER["HTTP_HOST"] . "/index.php?messageType=alert-success&message=" . urlencode("Successfully logged out of Facebook.")
+		));
+		
+		$markup .= "\">$text</a>";
+		
+		if ($return) {
+			return $markup;
+		}
+		else {
+			echo $markup;
+			return null;
+		}
 	}
 	
 	/**
@@ -267,7 +355,7 @@ class FacebookStream extends Stream
 	{
 		// Call Facebook API
 		$objects = $this->apiCall($method);
-		
+
 		// Iterate over returned objects
 		foreach ($objects["data"] as $object) {
 			
@@ -278,7 +366,7 @@ class FacebookStream extends Stream
 			else {
 				
 				// Prepare SQL statement
-				$sql = "INSERT INTO {$config["table_name"]} (user_id, object_id, object_date";
+				$sql = "INSERT INTO {$config["table_name"]} (account_id, object_id, object_date";
 				$sqlVals = "?, ?, ?";
 				
 				if ($config["likes"]) {
@@ -296,7 +384,7 @@ class FacebookStream extends Stream
 				$stmt = $this->db->prepare($sql);
 				
 				// Bind initial params
-				$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+				$stmt->bindParam(1, $this->facebookUser, PDO::PARAM_STR);
 				$stmt->bindParam(2, $object["id"], PDO::PARAM_STR);
 				$stmt->bindParam(3, $object[$config["date_field"]], PDO::PARAM_STR);
 				

@@ -6,8 +6,6 @@ error_reporting(E_ALL);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/src/FacebookStream.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/src/TwitterStream.php';
 
-Stream::$dateLimit = "2012-01-01T00:00:00";
-
 $fbStream = new FacebookStream(1);
 
 ?>
@@ -17,7 +15,7 @@ $fbStream = new FacebookStream(1);
 
 	<head>
 		
-		<title>Stream Test</title>
+		<title>Stream</title>
 		<meta charset='UTF-8' />
 		
 		<link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css" media="all" />
@@ -33,27 +31,40 @@ $fbStream = new FacebookStream(1);
 					<a class="brand" href="/">
 						Stream Test
 					</a>
+					<ul class="nav pull-right">
+						<li class="divider-vertical"></li>
+						<li><a href="http://www.benconstable.co.uk" target="_blank">by Ben Constable</a></li>
+					</ul>
 				</div>
 			</div>
 		</div>
 			
 		<div class="container">
-				
-			<h1>Stream Test</h1>
 			
-			<p>This PHP application gets updates from a number of social streams, including Facebook, Twitter and SoundCloud.</p>
+			<div class="hero-unit">
+				
+				<h1>Stream Test</h1>
+				
+				<p>This PHP application gets updates from a number of social streams, including Facebook, Twitter and SoundCloud.</p>
+				
+				<p><a class="btn btn-primary" href="https://github.com/BenConstable/Stream-Test" target="_blank">View the source on Github <i class="icon-chevron-right icon-white"></i></a></p>
+				
+			</div>
 			
 			<?php
 			
+			// Alert box after action
 			if (isset($_GET["messageType"])) {
 				echo "<div class=\"alert {$_GET["messageType"]}\">";
 				echo "<a class=\"close\" data-dismiss=\"alert\">x</a>";
-				echo "<h4>Alert</h4>";
+				echo "<h4 class=\"alert-heading\">Alert</h4>";
 				echo $_GET["message"];
 				echo "</div>";
 			}
 			
 			?>
+			
+			<hr />
 			
 			<div class="row">
 			
@@ -64,7 +75,7 @@ $fbStream = new FacebookStream(1);
 				</div>
 				
 				<div class="span3">
-					<a class="btn btn-large btn-primary" href="/update.php">Update All</a>
+					<a class="btn btn-large btn-primary" href="/action.php?type=update_all">Update All</a>
 				</div>
 				
 				<div class="span3">
@@ -81,14 +92,15 @@ $fbStream = new FacebookStream(1);
 							
 							<?php
 							
+							// List Facebook accounts
 							$fbAccounts = $fbStream->getAccounts();
 							
 							if ($fbAccounts) {
-							foreach ($fbAccounts as $account) {
-								echo "<li>";
-									echo "<a href=\"/update.php?user=1&type=facebook&account={$account["facebook_id"]}\">{$account["facebook_id"]}</a>";
-								echo "</li>";
-							}
+								foreach ($fbAccounts as $account) {
+									echo "<li>";
+									echo "<a href=\"/action.php?type=facebook_update&user=1&account={$account["account_id"]}\">{$account["account_id"]}</a>";
+									echo "</li>";
+								}
 							}
 							else {
 								echo "<li>No accounts found</li>";
@@ -97,7 +109,7 @@ $fbStream = new FacebookStream(1);
 							?>
 							
 							<li class="divider"></li>
-							<li><a href="#">Add new</a></li>
+							<li><?php $fbStream->renderLoginButton("Add new account"); ?></li>
 							
 						</ul>
 						
@@ -123,6 +135,8 @@ $fbStream = new FacebookStream(1);
 				</div>
 			
 			</div>
+			
+			<hr />
 			
 		</div>
 		
