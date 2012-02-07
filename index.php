@@ -7,6 +7,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/src/FacebookStream.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/src/TwitterStream.php';
 
 $fbStream = new FacebookStream(1);
+$twStream  = new TwitterStream(1);
 
 ?>
 
@@ -15,7 +16,7 @@ $fbStream = new FacebookStream(1);
 
 	<head>
 		
-		<title>Stream</title>
+		<title>Stream Test</title>
 		<meta charset='UTF-8' />
 		
 		<link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css" media="all" />
@@ -68,17 +69,14 @@ $fbStream = new FacebookStream(1);
 			
 			<div class="row">
 			
-				<div class="span3">
-				
+				<div class="span4">
+					
 					<p>Update all of your Social Media accounts, or pick one from the dropdowns provided.</p>
-				
-				</div>
-				
-				<div class="span3">
 					<a class="btn btn-large btn-primary" href="/action.php?type=update_all">Update All</a>
+										
 				</div>
 				
-				<div class="span3">
+				<div class="span4">
 					
 					<div class="btn-group">
 
@@ -95,15 +93,10 @@ $fbStream = new FacebookStream(1);
 							// List Facebook accounts
 							$fbAccounts = $fbStream->getAccounts();
 							
-							if ($fbAccounts) {
-								foreach ($fbAccounts as $account) {
-									echo "<li>";
-									echo "<a href=\"/action.php?type=facebook_update&user=1&account={$account["account_id"]}\">{$account["account_id"]}</a>";
-									echo "</li>";
-								}
-							}
-							else {
-								echo "<li>No accounts found</li>";
+							foreach ($fbAccounts as $account) {
+								echo "<li>";
+								echo "<a href=\"/action.php?type=facebook_update&user=1&account={$account["account_id"]}\">{$account["account_id"]}</a>";
+								echo "</li>";
 							}
 							
 							?>
@@ -117,7 +110,7 @@ $fbStream = new FacebookStream(1);
 					
 				</div>
 			
-				<div class="span3">
+				<div class="span4">
 					
 					<div class="btn-group">
 							
@@ -128,7 +121,42 @@ $fbStream = new FacebookStream(1);
 						</a>
 
 						<ul class="dropdown-menu">
+							
+							<?php
+							
+							// List Facebook accounts
+							$twAccounts = $twStream->getAccounts();
+							
+							foreach ($twAccounts as $account) {
+								echo "<li>";
+								echo "<a href=\"/action.php?type=twitter_update&user=1&account={$account["account_id"]}\">{$account["account_id"]}</a>";
+								echo "</li>";
+							}
+							
+							?>
+							
+							<li class="divider"></li>
+							<li><a class="twitter-add-button" href="#">Add new account</a></li>
+							
 						</ul>
+						
+					</div>
+					
+					<div class="twitter-add-container">
+						
+						<hr />
+
+						<form class="well form-horizontal form-inline" method="get" action="/action.php">
+							
+							<span class="help-inline">@</span>
+							<input class="input-small" type="text" placeholder="username" name="username">
+							<input type="hidden" name="type" value="twitter_add" />
+							<input type="hidden" name="user" value="1" />
+							
+							<button class="btn" type="submit">Add new</button>
+							<a class="close twitter-add-close">&times;</a>
+							
+						</form>
 						
 					</div>
 					

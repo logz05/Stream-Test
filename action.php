@@ -1,9 +1,12 @@
 <?php
 
 require_once $_SERVER["DOCUMENT_ROOT"] . '/src/FacebookStream.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/src/TwitterStream.php';
+
 
 // Set date limit for updates
 Stream::$dateLimit = "2012-01-01T00:00:00";
+
 
 switch($_GET["type"]) {
 	
@@ -47,6 +50,28 @@ switch($_GET["type"]) {
 		break;
 	
 		
+	// Add a new Twitter account
+	case "twitter_add":
+		
+		$twStream = new TwitterStream($_GET["user"]);
+		$result = $twStream->addAccount($_GET["username"]);
+		
+		if ($result == "added") {
+			header("Location: index.php?messageType=alert-success&message=" .
+				urlencode("New Twitter account added."));
+		}
+		else if ($result == "updated") {
+			header("Location: index.php?messageType=alert-block&message=" .
+				urlencode("Existing Twitter account updated."));
+		}
+		else {
+			header("Location: index.php?messageType=alert-block&message=" .
+				urlencode("Sorry, there was an error adding your account. Please try again."));
+		}
+		
+		break;
+		
+		
 	// Update all Streams for the logged in user
 	case "update_all":
 		
@@ -61,6 +86,7 @@ switch($_GET["type"]) {
 		
 		break;
 	
+		
 	// Go back home
 	default:
 		header("Location: index.php");

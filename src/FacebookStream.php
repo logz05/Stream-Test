@@ -17,7 +17,7 @@ class FacebookStream extends Stream
 	/**
 	 * @var Facebook $facebook Facebook object from PHP SDK  
 	 */
-	public $facebook;
+	private $facebook;
 	/**
 	 * @var int $facebookUser Facebook user account ID
 	 */
