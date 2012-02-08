@@ -17,15 +17,15 @@ switch($_GET["type"]) {
 		$result = $fbStream->addAccount();
 		
 		if ($result == "added") {
-			header("Location: index.php?messageType=alert-success&message=" .
+			header("Location: /?messageType=alert-success&message=" .
 				urlencode("New Facebook account added."));
 		}
 		else if ($result == "updated") {
-			header("Location: index.php?messageType=alert-block&message=" .
+			header("Location: /?messageType=alert-block&message=" .
 				urlencode("Existing Facebook account updated. Did you want to add a new account? First, " . $fbStream->renderLogoutButton("log out of Facebook", true) . "."));
 		}
 		else {
-			header("Location: index.php?messageType=alert-block&message=" .
+			header("Location: /?messageType=alert-block&message=" .
 				urlencode("Sorry, authorisation failed. Try adding the account again."));
 		}
 		
@@ -39,11 +39,11 @@ switch($_GET["type"]) {
 		
 		if ($fbStream->authenticate($_GET["account"])) {
 			$fbStream->update();
-			header("Location: index.php?messageType=alert-success&message=" .
+			header("Location: /?messageType=alert-success&message=" .
 				urlencode("Successfully updated Facebook Account '<strong>{$_GET["account"]}</strong>'."));
 		}
 		else {
-			header("Location: index.php?messageType=alert-error&message=" .
+			header("Location: /?messageType=alert-error&message=" .
 				urlencode("Sorry, we couldn't update Facebook Account '<strong>{$_GET["acccount"]}</strong>' as we don't have authorisation for it."));
 		}
 		
@@ -57,20 +57,38 @@ switch($_GET["type"]) {
 		$result = $twStream->addAccount($_GET["username"]);
 		
 		if ($result == "added") {
-			header("Location: index.php?messageType=alert-success&message=" .
+			header("Location: /?messageType=alert-success&message=" .
 				urlencode("New Twitter account added."));
 		}
 		else if ($result == "updated") {
-			header("Location: index.php?messageType=alert-block&message=" .
+			header("Location: /?messageType=alert-block&message=" .
 				urlencode("Existing Twitter account updated."));
 		}
 		else {
-			header("Location: index.php?messageType=alert-block&message=" .
+			header("Location: /?messageType=alert-block&message=" .
 				urlencode("Sorry, there was an error adding your account. Please try again."));
 		}
 		
 		break;
+	
 		
+	// Update Twitter account
+	case "twitter_update":
+		
+		$twStream = new TwitterStream(1);
+		
+		if ($twStream->authenticate($_GET["account"])) {
+			$twStream->update();
+			header("Location: /?messageType=alert-success&message=" .
+				urlencode("Successfully updated Twitter Account '<strong>{$_GET["account"]}</strong>'."));
+		}
+		else {
+			header("Location: /?messageType=alert-error&message=" .
+				urlencode("Sorry, we couldn't update Twitter Account '<strong>{$_GET["acccount"]}</strong>' as we don't have authorisation for it."));
+		}
+		
+		break;
+	
 		
 	// Update all Streams for the logged in user
 	case "update_all":
@@ -87,8 +105,8 @@ switch($_GET["type"]) {
 		break;
 	
 		
-	// Go back home
+	// Action not recognised, so just go back home
 	default:
-		header("Location: index.php");
+		header("Location: /");
 		break;
 }

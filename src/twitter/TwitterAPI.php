@@ -16,9 +16,13 @@ class TwitterAPI
 	 */
     private $con;
 	/**
+	 * @var string $userId Twitter user ID
+	 */
+    private $userId;
+	/**
 	 * @var string $username Twitter username
 	 */
-    private $username;
+	private $username;
 	/**
 	 * @var string $cache_path Path to the folder that can hold cached tweet info
 	 */
@@ -32,14 +36,35 @@ class TwitterAPI
     public function __construct($cachePath = false)
     {
         $this->con = null;
-        $this->username = null;
+        $this->userId = null;
+		$this->username = null;
 		$this->cachePath = $cachePath;
     }
     
 	/**
+	 * Set the Twitter user ID to use for requests.
+	 * 
+	 * @param string $userId Twitter account to set 
+	 */
+	public function setUserId($userId)
+	{
+		$this->userId = $userId;
+	}
+	
+	/**
+	 * Return the currently set account.
+	 * 
+	 * @return string Current account
+	 */
+	public function getUserId()
+	{
+		return $this->userId;
+	}
+	
+	/**
 	 * Set the Twitter username to use for requests.
 	 * 
-	 * @param string $username Twitter username to set 
+	 * @param string $username Username
 	 */
 	public function setUsername($username)
 	{
@@ -47,15 +72,35 @@ class TwitterAPI
 	}
 	
 	/**
+	 * Return the currently set Twitter username.
+	 * 
+	 * @return string Current Twitter username
+	 */
+	public function getUsername()
+	{
+		return $this->username;
+	}
+	
+	/**
 	 * Get an array of Tweet objects.
 	 *
 	 * @param int     $num      Maximum number of Tweets to retrieve
+	 * @param int     $since    Since Tweet ID
 	 * @param boolean $useCache Optional. Whether or not to check and store in the cache
 	 * @return mixed Array of Tweets objects. Null if none found.
 	 */
-	public function getTweets($num, $useCache = false)
-	{		
-		return $this->api("http://api.twitter.com/1/statuses/user_timeline.json?screen_name={$this->username}&count=$num&include_entities=true", ($useCache ? "twitter_multiple" : false));
+	public function getTweets($num, $since = false, $useCache = false)
+	{	
+		$params = array(
+			"count" => $num,
+			"include_entities" => "true"
+		);
+		
+		if ($since) {
+			$params["since_id"] = $since;
+		}
+		
+		return $this->api("/statuses/user_timeline.json", $params, ($useCache ? "twitter_multiple" : false));
 	}
 	
     /**
@@ -65,24 +110,47 @@ class TwitterAPI
 	 * @return mixed @see User object or null
 	 */
     public function getUser($useCache = false)
-    {        
-        return $this->api("http://api.twitter.com/1/users/show.json?screen_name={$this->username}&include_entities=true",  ($useCache ? "twitter_single" : false));
+    {   
+		$params = array(
+			"include_entities" => "true"
+		);
+		
+        return $this->api("/users/show.json", $params, ($useCache ? "twitter_single" : false));
     }
     
 	/**
 	 * Make an API request.
 	 *
-	 * @param string $url 			 API URL, including all parameters
+	 * @param string $method 		 API method
+	 * @param array  $params         Array of request parameters
 	 * @param string $cachedFilename Name of the cached file to
 	 *								 use to store or get results. Needs no extension.
 	 *								 Optional.
 	 * @return array Decoded JSON array or null if failure
 	 */
-	public function api($url, $cachedFilename = false)
+	public function api($method, $params = array(), $cachedFilename = false)
 	{
+		// Create request
+		$url = "http://api.twitter.com/1" . $method . "?";
+		
+		if ($params) {
+			$params = http_build_query($params);
+		}
+		
+		if ($this->userId) {
+			$params["user_id"] = $this->userId;
+		}
+		
+		if ($this->username) {
+			$params["screen_name"] = $this->username;
+		}
+		
+		$url .= http_build_query($params);
+		
+		// Setup cache path
 		$cachedFile = false;
 		if ($cachedFilename && $this->cachePath) {
-			$cachedFile = $_SERVER["DOCUMENT_ROOT"] . "{$this->cachePath}/{$this->username}_{$cachedFilename}.json";
+			$cachedFile = $_SERVER["DOCUMENT_ROOT"] . "{$this->cachePath}/{$this->account}_{$cachedFilename}.json";
 		}
 		
 		// Can we make an API request?
@@ -109,18 +177,17 @@ class TwitterAPI
 	}
 	
 	/**
-	 * Parses an individual Tweet into a useful object.
+	 * Parses an individual Tweet into an HTML string with links on both mentions
+	 * and URLs.
 	 *
 	 * @param array  $tweetArr Array of Tweet data, directly decoded from
 	 *						   a JSON API request
-	 * @return array "tweet" => Formatted Tweet, with links
-	 * 				 "createdAt" => DateTime object holding when the Tweet was created
-	 * 				 "daysAgo" => Days ago the Tweet was posted
+	 * @return string Formatted Tweet 
 	 */
 	public function parseTweetText($tweetArr)
 	{
 		// Get and format Tweet text
-        $tweet = $tweet_arr->text;
+        $tweet = $tweetArr->text;
         $tweet = $this->replaceUrls($tweet, $tweetArr->entities->urls);
         $tweet = $this->replaceMentions($tweet, $tweetArr->entities->user_mentions);
                 	
@@ -134,7 +201,7 @@ class TwitterAPI
 	*/
     protected function canMakeRequest()
     {
-        $result = json_decode($this->http_request("http://api.twitter.com/1/account/rate_limit_status.json"));
+        $result = json_decode($this->httpRequest("http://api.twitter.com/1/account/rate_limit_status.json"));
         
         return $result->remaining_hits > 0;
     }
@@ -181,7 +248,7 @@ class TwitterAPI
             $scrName = $m->screen_name;
             
             // Build and HTML anchor for the mention
-            $working_mention = "<a href=\"http://www.twitter.com/$scrName\" target=\"_blank\">@$scrName</a>";
+            $workingMention = "<a href=\"http://www.twitter.com/$scrName\" target=\"_blank\">@$scrName</a>";
             
             // Replace it with the one provided in the tweet
             $tweet = str_ireplace("@" . $scrName, $workingMention, $tweet);

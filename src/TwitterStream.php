@@ -14,6 +14,9 @@ require_once $_SERVER["DOCUMENT_ROOT"] . "/src/twitter/TwitterAPI.php";
  */
 class TwitterStream extends Stream
 {
+	/**
+	 * @var TwitterAPI $twitter Twitter API class 
+	 */
 	private $twitter;
 	
 	/**
@@ -34,12 +37,17 @@ class TwitterStream extends Stream
 	/**
 	 * @see Stream::update()
 	 */
-	public function update() {}
+	public function update()
+	{
+		$this->updateTweets();
+	}
 	
 	/**
 	 * Checks if the given Twitter account has been added to the database.
 	 * 
-	 * @see Stream::authenticate() 
+	 * @see Stream::authenticate()
+	 * 
+	 * @param string $accountId Twitter username
 	 */
 	public function authenticate($accountId)
 	{
@@ -63,7 +71,7 @@ class TwitterStream extends Stream
 	/**
 	 * Add the given Twitter account to the database.
 	 * 
-	 * @param string $accountId Twitter account username
+	 * @param string $accountId Twitter username
 	 * @return mixed "added" if add was successful, "updated" if account updated or false if neither 
 	 */
 	public function addAccount($accountId)
@@ -104,5 +112,50 @@ class TwitterStream extends Stream
 		$stmt->execute();
 		
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
+	
+	/**
+	 * Update Tweets for the current account.
+	 * 
+	 * Will only get tweets that aren't already in the database.
+	 */
+	public function updateTweets()
+	{
+		// Get the latest tweet for the account in the databse
+		$stmt = $this->db->prepare("SELECT object_id FROM twitter_tweets WHERE account_id = ? ORDER BY id DESC");
+		$stmt->bindParam(1, $this->twitter->getUsername(), PDO::PARAM_STR);
+		$stmt->execute();
+		
+		$latestTweet = $stmt->fetch(PDO::FETCH_ASSOC);
+		$latestTweetId = false;
+		
+		if ($latestTweet) {
+			$latestTweetId = $latestTweet["object_id"];
+		}
+		
+		// Make an API request with the current account
+		if ($this->twitter->getUsername()) {
+			
+			$tweets = $this->twitter->getTweets(200, $latestTweetId);
+			
+			// Store each tweet in the database
+			foreach ($tweets as $tweet) {
+				
+				$tweetMessage = $this->twitter->parseTweetText($tweet);
+				// ISO 8601 formatted date
+				$tweetDate = new DateTime($tweet->created_at);
+				$tweetDate = $tweetDate->format("c");
+				
+				$stmt = $this->db->prepare("INSERT INTO twitter_tweets (account_id, object_id, object_date, tweet, retweet_count, reply_to_name, reply_to_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				$stmt->bindParam(1, $this->twitter->getUsername(), PDO::PARAM_STR);
+				$stmt->bindParam(2, $tweet->id_str, PDO::PARAM_STR);
+				$stmt->bindParam(3, $tweetDate, PDO::PARAM_STR);
+				$stmt->bindParam(4, $tweetMessage, PDO::PARAM_STR);
+				$stmt->bindParam(5, $tweet->retweet_count, PDO::PARAM_INT);
+				$stmt->bindParam(6, $tweet->reply_to_screen_name, PDO::PARAM_STR);
+				$stmt->bindParam(7, $tweet->in_reply_to_status_id, PDO::PARAM_INT);
+				$stmt->execute();
+			}
+		}
 	}
 }

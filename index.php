@@ -56,7 +56,7 @@ $twStream  = new TwitterStream(1);
 			
 			// Alert box after action
 			if (isset($_GET["messageType"])) {
-				echo "<div class=\"alert {$_GET["messageType"]}\">";
+				echo "<div class=\"alert {$_GET["messageType"]} fade in\">";
 				echo "<a class=\"close\" data-dismiss=\"alert\">x</a>";
 				echo "<h4 class=\"alert-heading\">Alert</h4>";
 				echo $_GET["message"];
