@@ -1,7 +1,7 @@
 <?php
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lib/facebook-php-sdk/src/facebook.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/src/Stream.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/src/streams/Stream.php';
 
 /**
  * The FacebookStream class implements the Stream class with Facebook specific
@@ -43,7 +43,31 @@ class FacebookStream extends Stream
 	/**
 	 * @see Stream::get()
 	 */
-	public function get() {}
+	public function get($objects)
+	{
+		$result = array();
+		
+		if (!is_array($objects)) {
+			$objects = array($objects);
+		}
+		
+		foreach ($objects as $object) {
+			
+			$stmt = $this->db->prepare("SELECT * FROM $object WHERE account_id IN (SELECT * FROM (SELECT account_id FROM facebook_accounts WHERE user_id = ?) AS temp)");
+			$stmt->bindParam(1, $this->userId, PDO::PARAM_INT);
+			$stmt->execute();
+			
+			$retrieved = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+			if ($retrieved) {
+				$result = array_merge($result, $retrieved);
+			}
+		}
+		
+		usort($result, array("Stream", "dateSort"));
+		
+		return $result;
+	}
 	
 	/**
 	 * Updates all Facebook objects for the authenticated Facebook account.

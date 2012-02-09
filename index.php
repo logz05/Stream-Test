@@ -1,11 +1,10 @@
 <?php
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+require_once $_SERVER['DOCUMENT_ROOT'] . '/src/streams/StreamGetter.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/src/streams/FacebookStream.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/src/streams/TwitterStream.php';
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/src/FacebookStream.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/src/TwitterStream.php';
-
+// Create Stream objects
 $fbStream = new FacebookStream(1);
 $twStream  = new TwitterStream(1);
 
@@ -124,7 +123,7 @@ $twStream  = new TwitterStream(1);
 							
 							<?php
 							
-							// List Facebook accounts
+							// List Twitter accounts
 							$twAccounts = $twStream->getAccounts();
 							
 							foreach ($twAccounts as $account) {
@@ -161,10 +160,144 @@ $twStream  = new TwitterStream(1);
 					</div>
 					
 				</div>
-			
+				
 			</div>
 			
 			<hr />
+			
+			<h1>The Stream</h1>
+			
+			<p>View the Stream from all accounts below, or filter by service.</p>
+			
+			<?php
+			
+			// Get data from all streams
+			$stream = StreamGetter::getAll(1, array(
+				"Facebook" => array(
+					"facebook_checkins",
+					"facebook_events",
+					"facebook_likes",
+					"facebook_photos",
+					"facebook_statuses",
+					"facebook_videos"
+				),
+				"Twitter" => array(
+					"twitter_tweets"
+				)
+			));
+							
+			?>
+
+			<div class="tabbable">
+
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="#tabAll" data-toggle="tab">All</a></li>
+					<li><a href="#tabFacebook" data-toggle="tab">Facebook</a></li>
+					<li><a href="#tabTwitter" data-toggle="tab">Twitter</a></li>
+				</ul>
+
+				<div class="tab-content">
+
+					<div class="tab-pane active" id="tabAll">
+
+						<?php
+
+						$facebookItems = array();
+						$twitterItems = array();
+						
+						if ($stream) {
+							
+							foreach ($stream as $item) {
+
+								if ($item["object_type"] == "twitter_tweet") {
+									$twitterItems[] = $item;
+								}
+								else {
+									$facebookItems[] = $item;
+								}
+
+								StreamGetter::renderItem($item);
+
+								echo "<hr />";
+							}
+						}
+						else {
+							
+							?>
+							
+							<div class="alert alert-error fade in">
+								<h4 class="alert-heading">Alert</h4>
+								<p>Nothing in the Stream at the moment. Try updating!</p>
+							</div>
+				
+							<?php
+						}
+
+						?>
+
+					</div>
+
+					<div class="tab-pane" id="tabFacebook">
+
+						<?php
+						
+						if ($facebookItems) {
+							
+							foreach ($facebookItems as $item) {
+
+								StreamGetter::renderItem($item);
+
+								echo "<hr />";
+							}
+						}
+						else {
+							
+							?>
+							
+							<div class="alert alert-error fade in">
+								<h4 class="alert-heading">Alert</h4>
+								<p>Nothing in the Facebook Stream at the moment. Try updating!</p>
+							</div>
+				
+							<?php
+						}
+
+						?>
+
+					</div>
+
+					<div class="tab-pane" id="tabTwitter">
+
+						<?php
+
+						if ($twitterItems) {
+							
+							foreach ($twitterItems as $item) {
+
+								StreamGetter::renderItem($item);
+
+								echo "<hr />";
+							}
+						}
+						else {
+							
+							?>
+							
+							<div class="alert alert-error fade in">
+								<h4 class="alert-heading">Alert</h4>
+								<p>Nothing in the Twitter Stream at the moment. Try updating!</p>
+							</div>
+				
+							<?php
+						}
+
+						?>
+
+					</div>
+
+				</div>
+
+			</div>
 			
 		</div>
 		

@@ -132,11 +132,7 @@ class TwitterAPI
 	{
 		// Create request
 		$url = "http://api.twitter.com/1" . $method . "?";
-		
-		if ($params) {
-			$params = http_build_query($params);
-		}
-		
+				
 		if ($this->userId) {
 			$params["user_id"] = $this->userId;
 		}

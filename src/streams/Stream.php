@@ -47,6 +47,26 @@ abstract class Stream
 	}
 	
 	/**
+	 * Compare to database rows (Stream data entities) based on their object_date.
+	 * 
+	 * @param array $a Row as array, retrieved from database
+	 * @param array $b Row as array, retrieved from database
+	 * @return int -1 if $a comes after $b, 1 if $b comes after $a  
+	 */
+	public static function dateSort($a, $b)
+	{
+		$aDate = new DateTime($a["object_date"]);
+		$bDate = new DateTime($b["object_date"]);
+		
+		if ($aDate->format("U") >= $bDate->format("U")) {
+			return -1;
+		}
+		else {
+			return 1;
+		}
+	}
+	
+	/**
 	 * Update the database with new data from the Stream.
 	 * 
 	 * It's up to the implementing class to decide how and what to add to the
@@ -55,11 +75,14 @@ abstract class Stream
 	public abstract function update();
 	
 	/**
-	 * Get Stream data from the database.
+	 * Get Stream data from the database. Returned objects should be sorted using
+	 * their object_date. Can use Stream::dateSort().
 	 * 
-	 * @return mixed Stream data
+	 * @param mixed Config to say what entities to retrieve. Each element in the
+	 *              array should be a database table name, or a string for a single table.
+	 * @return array Stream data objects in array
 	 */
-	public abstract function get();
+	public abstract function get($objects);
 	
 	/**
 	 * If the Stream requires authentication, override this method to authenticate

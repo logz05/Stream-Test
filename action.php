@@ -1,7 +1,7 @@
 <?php
 
-require_once $_SERVER["DOCUMENT_ROOT"] . '/src/FacebookStream.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/src/TwitterStream.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/src/streams/FacebookStream.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/src/streams/TwitterStream.php';
 
 
 // Set date limit for updates
@@ -102,6 +102,18 @@ switch($_GET["type"]) {
 			}
 		}
 		
+		$twStream = new TwitterStream(1);
+		$twAccounts = $twStream->getAccounts();
+		
+		foreach ($twAccounts as $twAccount) {
+			if ($twStream->authenticate($twAccount["account_id"])) {
+				$twStream->update();
+			}
+		}
+		
+		header("Location: /?messageType=alert-success&message=" .
+				urlencode("Successfully updated all accounts."));
+				
 		break;
 	
 		
